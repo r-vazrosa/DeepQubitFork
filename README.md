@@ -7,7 +7,7 @@ Compiling quantum circuits from arbitrary gate sets to approximate unitary opera
 
 1. Make sure [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) is installed
 
-2. Create a new conda environment using
+2. Create a conda environment
    
     ```
     conda create --name deepqube python=3.12
@@ -18,6 +18,13 @@ Compiling quantum circuits from arbitrary gate sets to approximate unitary opera
     ```
     conda install --channel pytorch pytorch
     pip install deepxube
+    ```
+
+4. Activate the environment
+
+    ```
+    conda activate deepqube
+    source ./setup.sh
     ```
 
 ## Training
