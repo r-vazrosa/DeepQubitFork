@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from deepxube.training import avi
 
-from environments import QCircuit
+from environments.qcircuit import QCircuit
 
 
 if __name__ == '__main__':
