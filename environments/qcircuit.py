@@ -97,7 +97,7 @@ class ControlledGate(QAction):
 
     
 class HGate(OneQubitGate):
-    unitary = np.array([[1, 1], [1, -1]], dtype=np.complex64)
+    unitary = np.array([[1, 1], [1, -1]], dtype=np.complex64) / np.sqrt(2)
 
     def __init__(self, qubit: int):
         super(HGate, self).__init__(qubit, self.unitary)
@@ -198,7 +198,7 @@ class QCircuit(Environment):
 
     def get_v_nnet(self) -> HeurFnNNet:
         input_size: int = (2**(2*self.num_qubits + 2))
-        return QNNet(input_size, 1000, 2, 128, [100, 20, 1])
+        return QNNet(input_size, 2000, 4, 400, [200, 100, 80, 20, 1])
 
     def get_q_nnet(self) -> HeurFnNNet:
         raise NotImplementedError()
