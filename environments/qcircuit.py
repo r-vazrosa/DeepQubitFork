@@ -1,6 +1,7 @@
-import numpy as np
 import torch
 from torch import nn
+import numpy as np
+from hashlib import sha256
 from typing import Self, Tuple, List
 from deepxube.environments.environment_abstract import Environment, State, Action, Goal, HeurFnNNet
 from deepxube.nnet.pytorch_models import ResnetModel, FullyConnectedModel
@@ -31,10 +32,10 @@ class QState(State):
         self.unitary = unitary
     
     def __hash__(self):
-        return hash(str(self.unitary))
+        return hash(sha256(self.unitary.tobytes()).hexdigest())
 
     def __eq__(self, other: Self):
-        return np.allclose(self.unitary, other.unitary)
+        return np.allclose(self.unitary, other.unitary, rtol=1e-5, atol=1e-6)
 
 
 class QGoal(Goal):
@@ -152,7 +153,8 @@ class QCircuit(Environment):
     def __init__(self, num_qubits: int):
         super(QCircuit, self).__init__(env_name='qcircuit')
         
-        self.num_qubits = num_qubits
+        self.start_walk_max: int = 100
+        self.num_qubits: int = num_qubits
         self._generate_actions()
 
     def _generate_actions(self):
@@ -170,7 +172,8 @@ class QCircuit(Environment):
 
     def get_start_states(self, num_states: int) -> List[QState]:
         states = [QState(np.eye(2**self.num_qubits, dtype=np.complex64)) for _ in range(num_states)]
-        states_walk = self._random_walk(states, [10] * len(states))
+        num_walk_steps = np.random.randint(self.start_walk_max, size=(len(states,)))
+        states_walk = self._random_walk(states, num_walk_steps)
         return states_walk
 
     def get_state_actions(self, states: List[QState]) -> List[List[QAction]]:

@@ -17,14 +17,13 @@ Compiling quantum circuits from arbitrary gate sets to approximate unitary opera
 
     ```
     conda install --channel pytorch pytorch
-    conda install --channel conda-forge qiskit
     pip install deepxube
     ```
 
 ## Training
 
-To train a model for 3 qubit compilation, run
+To train a model for 2 qubit compilation, run
 
 ```
-python scripts/train.py --num_qubits 3 --nnet_dir ./tmp/test_model
+python scripts/train.py --num_qubits 2 --nnet_dir ./tmp/qcircuit2
 ```
