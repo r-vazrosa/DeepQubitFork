@@ -2,6 +2,7 @@ import torch
 from torch import nn
 import numpy as np
 from hashlib import sha256
+from abc import ABC, abstractmethod
 from typing import Self, Tuple, List
 from deepxube.environments.environment_abstract import Environment, State, Action, Goal, HeurFnNNet
 from deepxube.nnet.pytorch_models import ResnetModel, FullyConnectedModel
@@ -24,26 +25,30 @@ class QGoal(Goal):
         self.unitary = unitary
     
 
-class QAction(Action):
-    def __init__(self, unitary: np.ndarray[np.complex64]):
-        self.unitary = unitary
-
+class QAction(Action, ABC):
+    unitary: np.ndarray[np.complex64]
+    full_gate_unitary: np.ndarray[np.complex64]
+    
     def apply_to(self, state: QState) -> QState:
         new_state_unitary = np.matmul(self.full_gate_unitary, state.unitary)
         return QState(new_state_unitary)
+    
+    @abstractmethod
+    def _generate_full_unitary(self):
+        pass
 
 
 class OneQubitGate(QAction):
-    def __init__(self, num_qubits: int, qubit: int, unitary: np.ndarray[np.complex64]):
-        super(OneQubitGate, self).__init__(unitary)
-        self.qubit = qubit
-        self.num_qubits = num_qubits
-        self.unitary = unitary
-        self._generate_full_unitary()
+    unitary: np.ndarray[np.complex64]
+    full_gate_unitary: np.ndarray[np.complex64]
     
-    def _generate_full_unitary(self):
+    def __init__(self, num_qubits: int, qubit: int):
+        self.qubit = qubit
+        self._generate_full_unitary(num_qubits)
+    
+    def _generate_full_unitary(self, num_qubits: int):
         mats: List[np.ndarray] = []
-        for i in range(self.num_qubits):
+        for i in range(num_qubits):
             if i == self.qubit:
                 mats.append(self.unitary)
             else:
@@ -53,18 +58,18 @@ class OneQubitGate(QAction):
     
 
 class ControlledGate(QAction):
-    def __init__(self, num_qubits: int, control: int, target: int, unitary: np.ndarray[np.complex64]):
-        super(ControlledGate, self).__init__(unitary)
+    unitary: np.ndarray[np.complex64]
+    full_gate_unitary: np.ndarray[np.complex64]
+
+    def __init__(self, num_qubits: int, control: int, target: int):
         self.control = control
         self.target = target
-        self.num_qubits = num_qubits
-        self.unitary = unitary
-        self._generate_full_unitary()
+        self._generate_full_unitary(num_qubits)
 
     def _generate_full_unitary(self):
         p0_mats = [] # matrices that are applied to each qubit when the control is 0...
         p1_mats = [] # ...and when the control is 1
-        for i in range(self.num_qubits):
+        for i in range(num_qubits):
             if i == self.control:
                 p0_mats.append(P0)
                 p1_mats.append(P1)
@@ -83,29 +88,17 @@ class ControlledGate(QAction):
 class HGate(OneQubitGate):
     unitary = np.array([[1, 1], [1, -1]], dtype=np.complex64) / np.sqrt(2)
 
-    def __init__(self, num_qubits: int, qubit: int):
-        super(HGate, self).__init__(num_qubits, qubit, self.unitary)
-
     
 class SGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, 1j]], dtype=np.complex64)
-
-    def __init__(self, num_qubits: int, qubit: int):
-        super(SGate, self).__init__(num_qubits, qubit, self.unitary)
 
     
 class TGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, np.exp(1j*np.pi/4)]], dtype=np.complex64)
 
-    def __init__(self, num_qubits: int, qubit: int):
-        super(TGate, self).__init__(num_qubits, qubit, self.unitary)
-
 
 class CNOTGate(ControlledGate):
     unitary = np.array([[0, 1], [1, 0]], dtype=np.complex64)
-
-    def __init__(self, num_qubits: int, control: int, target: int):
-        super(CNOTGate, self).__init__(num_qubits, control, target, self.unitary)
 
 
 class QNNet(HeurFnNNet):
