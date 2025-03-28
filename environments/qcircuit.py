@@ -5,26 +5,7 @@ from hashlib import sha256
 from typing import Self, Tuple, List
 from deepxube.environments.environment_abstract import Environment, State, Action, Goal, HeurFnNNet
 from deepxube.nnet.pytorch_models import ResnetModel, FullyConnectedModel
-
-
-I = np.eye(2, dtype=np.complex64)
-P0 = np.array([[1, 0], [0, 0]], dtype=np.complex64)
-P1 = np.array([[0, 0], [0, 1]], dtype=np.complex64)
-
-
-def tensor_product(mats: List[np.ndarray[np.complex64]]) -> np.ndarray[np.complex64]:
-    current = 1
-    for mat in mats:
-        current = np.kron(current, mat)
-    return current
-
-
-def unitary_to_nnet_input(unitary: np.ndarray[np.complex64]) -> np.ndarray[float]:
-    unitary_flat = unitary.flatten()
-    unitary_real = np.real(unitary_flat)
-    unitary_imag = np.imag(unitary_flat)
-    unitary_nnet = np.hstack((unitary_real, unitary_imag)).astype(float)
-    return unitary_nnet
+from utils.matrix_utils import *
 
 
 class QState(State):
@@ -35,7 +16,7 @@ class QState(State):
         return hash(sha256(self.unitary.tobytes()).hexdigest())
 
     def __eq__(self, other: Self):
-        return np.allclose(self.unitary, other.unitary, rtol=1e-5, atol=1e-6)
+        return mats_close(self.unitary, other.unitary)
 
 
 class QGoal(Goal):
@@ -47,38 +28,43 @@ class QAction(Action):
     def __init__(self, unitary: np.ndarray[np.complex64]):
         self.unitary = unitary
 
+    def apply_to(self, state: QState) -> QState:
+        new_state_unitary = np.matmul(self.full_gate_unitary, state.unitary)
+        return QState(new_state_unitary)
+
 
 class OneQubitGate(QAction):
-    def __init__(self, qubit: int, unitary: np.ndarray[np.complex64]):
+    def __init__(self, num_qubits: int, qubit: int, unitary: np.ndarray[np.complex64]):
         super(OneQubitGate, self).__init__(unitary)
         self.qubit = qubit
-
-    def apply_to(self, state: QState) -> QState:
-        num_qubits: int = int(np.log2(state.unitary.shape[0]))
+        self.num_qubits = num_qubits
+        self.unitary = unitary
+        self._generate_full_unitary()
+    
+    def _generate_full_unitary(self):
         mats: List[np.ndarray] = []
-        for i in range(num_qubits):
+        for i in range(self.num_qubits):
             if i == self.qubit:
                 mats.append(self.unitary)
             else:
                 mats.append(I)
         
-        full_gate_unitary = tensor_product(mats)
-        new_state_unitary = np.matmul(full_gate_unitary, state.unitary)
-        return QState(new_state_unitary)
+        self.full_gate_unitary = tensor_product(mats)
     
 
 class ControlledGate(QAction):
-    def __init__(self, control: int, target: int, unitary: np.ndarray[np.complex64]):
+    def __init__(self, num_qubits: int, control: int, target: int, unitary: np.ndarray[np.complex64]):
         super(ControlledGate, self).__init__(unitary)
         self.control = control
         self.target = target
+        self.num_qubits = num_qubits
         self.unitary = unitary
+        self._generate_full_unitary()
 
-    def apply_to(self, state: QState) -> QState:
-        num_qubits: int = int(np.log2(state.unitary.shape[0]))
+    def _generate_full_unitary(self):
         p0_mats = [] # matrices that are applied to each qubit when the control is 0...
         p1_mats = [] # ...and when the control is 1
-        for i in range(num_qubits):
+        for i in range(self.num_qubits):
             if i == self.control:
                 p0_mats.append(P0)
                 p1_mats.append(P1)
@@ -91,38 +77,35 @@ class ControlledGate(QAction):
         
         p0_full = tensor_product(p0_mats)
         p1_full = tensor_product(p1_mats)
-        full_gate_unitary = p0_full + p1_full
-
-        new_state_unitary = np.matmul(full_gate_unitary, state.unitary)
-        return QState(new_state_unitary)
+        self.full_gate_unitary = p0_full + p1_full
 
     
 class HGate(OneQubitGate):
     unitary = np.array([[1, 1], [1, -1]], dtype=np.complex64) / np.sqrt(2)
 
-    def __init__(self, qubit: int):
-        super(HGate, self).__init__(qubit, self.unitary)
+    def __init__(self, num_qubits: int, qubit: int):
+        super(HGate, self).__init__(num_qubits, qubit, self.unitary)
 
     
 class SGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, 1j]], dtype=np.complex64)
 
-    def __init__(self, qubit: int):
-        super(SGate, self).__init__(qubit, self.unitary)
+    def __init__(self, num_qubits: int, qubit: int):
+        super(SGate, self).__init__(num_qubits, qubit, self.unitary)
 
     
 class TGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, np.exp(1j*np.pi/4)]], dtype=np.complex64)
 
-    def __init__(self, qubit: int):
-        super(TGate, self).__init__(qubit, self.unitary)
+    def __init__(self, num_qubits: int, qubit: int):
+        super(TGate, self).__init__(num_qubits, qubit, self.unitary)
 
 
 class CNOTGate(ControlledGate):
     unitary = np.array([[0, 1], [1, 0]], dtype=np.complex64)
 
-    def __init__(self, control: int, target: int):
-        super(CNOTGate, self).__init__(control, target, self.unitary)
+    def __init__(self, num_qubits: int, control: int, target: int):
+        super(CNOTGate, self).__init__(num_qubits, control, target, self.unitary)
 
 
 class QNNet(HeurFnNNet):
@@ -158,19 +141,32 @@ class QCircuit(Environment):
         self._generate_actions()
 
     def _generate_actions(self):
+        """
+        Generates the action set for n qubits given a specific gate set
+        by looping over each possible gate at each qubit
+        """
         self.actions = []
         for i in range(self.num_qubits):
             for gate in self.gate_set:
                 if issubclass(gate, OneQubitGate):
                     for i in range(self.num_qubits):
-                        self.actions.append(gate(i))
+                        self.actions.append(gate(self.num_qubits, i))
                 elif issubclass(gate, ControlledGate):
                     for i in range(self.num_qubits):
                         for j in range(self.num_qubits):
                             if i != j:
-                                self.actions.append(gate(i, j))
+                                self.actions.append(gate(self.num_qubits, i, j))
 
     def get_start_states(self, num_states: int) -> List[QState]:
+        """
+        Generates a set of states with random unitary operators initialized
+
+        @param num_states: Number of states to generate
+        @returns: Generated states
+
+        TODO: look into more sophisticated way of randomly generating unitary matrices,
+        such as http://home.lu.lv/~sd20008/papers/essays/Random%20unitary%20[paper].pdf
+        """
         states = [QState(np.eye(2**self.num_qubits, dtype=np.complex64)) for _ in range(num_states)]
         num_walk_steps = np.random.randint(self.start_walk_max, size=(len(states,)))
         states_walk = self._random_walk(states, num_walk_steps)
@@ -192,9 +188,27 @@ class QCircuit(Environment):
         return [QGoal(x.unitary) for x in states_goal]
     
     def is_solved(self, states: List[QState], goals: List[QGoal]) -> List[bool]:
-        return [np.allclose(state.unitary, goal.unitary) for (state, goal) in zip(states, goals)]
+        """
+        Checks whether each state is solved by comparing their unitaries (within a tolerance)
 
-    def states_goals_to_nnet_input(self, states: List[QState], goals: List[QGoal]) -> List[np.ndarray]:
+        @param states: List of quantum circuit states
+        @param goals: List of goals to check against
+        @returns: List of bools representing solved/not-solved
+
+        TODO: Implement more sophisticated way of checking of two
+        unitaries are 'close', possibly using some kind of matrix norm
+        """
+        return [mats_close(state.unitary, goal.unitary) for (state, goal) in zip(states, goals)]
+
+    def states_goals_to_nnet_input(self, states: List[QState], goals: List[QGoal]) -> List[np.ndarray[float]]:
+        """
+        Converts quantum state class objects to numpy arrays that can be
+        converted to tensors for neural network training
+
+        @param states: List of quantum circuit states
+        @param goals: List of quantum circuit goals
+        @returns: List of numpy arrays of flattened state and unitaries (in float format)
+        """
         states_nnet = np.vstack([unitary_to_nnet_input(x.unitary) for x in states])
         goals_nnet = np.vstack([unitary_to_nnet_input(x.unitary) for x in goals])
         return [states_nnet, goals_nnet]
