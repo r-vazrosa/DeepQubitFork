@@ -10,7 +10,7 @@ from utils.matrix_utils import *
 
 
 class QState(State):
-    def __init__(self, unitary: np.ndarray[np.complex64] = None):
+    def __init__(self, unitary: np.ndarray[np.complex128] = None):
         self.unitary = unitary
     
     def __hash__(self):
@@ -21,16 +21,16 @@ class QState(State):
 
 
 class QGoal(Goal):
-    def __init__(self, unitary: np.ndarray[np.complex64]):
+    def __init__(self, unitary: np.ndarray[np.complex128]):
         self.unitary = unitary
     
 
 class QAction(Action, ABC):
-    unitary: np.ndarray[np.complex64]
-    full_gate_unitary: np.ndarray[np.complex64]
+    unitary: np.ndarray[np.complex128]
+    full_gate_unitary: np.ndarray[np.complex128]
     
     def apply_to(self, state: QState) -> QState:
-        new_state_unitary = np.matmul(self.full_gate_unitary, state.unitary)
+        new_state_unitary = np.matmul(self.full_gate_unitary, state.unitary).astype(np.complex128)
         return QState(new_state_unitary)
     
     @abstractmethod
@@ -39,8 +39,8 @@ class QAction(Action, ABC):
 
 
 class OneQubitGate(QAction):
-    unitary: np.ndarray[np.complex64]
-    full_gate_unitary: np.ndarray[np.complex64]
+    unitary: np.ndarray[np.complex128]
+    full_gate_unitary: np.ndarray[np.complex128]
     
     def __init__(self, num_qubits: int, qubit: int):
         self.qubit = qubit
@@ -58,27 +58,22 @@ class OneQubitGate(QAction):
     
 
 class ControlledGate(QAction):
-    unitary: np.ndarray[np.complex64]
-    full_gate_unitary: np.ndarray[np.complex64]
+    unitary: np.ndarray[np.complex128]
+    full_gate_unitary: np.ndarray[np.complex128]
 
     def __init__(self, num_qubits: int, control: int, target: int):
         self.control = control
         self.target = target
         self._generate_full_unitary(num_qubits)
 
-    def _generate_full_unitary(self):
-        p0_mats = [] # matrices that are applied to each qubit when the control is 0...
-        p1_mats = [] # ...and when the control is 1
-        for i in range(num_qubits):
-            if i == self.control:
-                p0_mats.append(P0)
-                p1_mats.append(P1)
-            elif i == self.target:
-                p0_mats.append(I)
-                p1_mats.append(self.unitary)
-            else:
-                p0_mats.append(I)
-                p1_mats.append(I)
+    def _generate_full_unitary(self, num_qubits: int):
+        p0_mats = [I for _ in range(num_qubits)]
+        p1_mats = [I for _ in range(num_qubits)]
+
+        p0_mats[self.control] = P0
+        p1_mats[self.control] = P1
+        p0_mats[self.target] = I
+        p1_mats[self.target] = self.unitary
         
         p0_full = tensor_product(p0_mats)
         p1_full = tensor_product(p1_mats)
@@ -86,19 +81,19 @@ class ControlledGate(QAction):
 
     
 class HGate(OneQubitGate):
-    unitary = np.array([[1, 1], [1, -1]], dtype=np.complex64) / np.sqrt(2)
+    unitary = np.array([[1, 1], [1, -1]], dtype=np.complex128) / np.sqrt(2)
 
     
 class SGate(OneQubitGate):
-    unitary = np.array([[1, 0], [0, 1j]], dtype=np.complex64)
+    unitary = np.array([[1, 0], [0, 1j]], dtype=np.complex128)
 
     
 class TGate(OneQubitGate):
-    unitary = np.array([[1, 0], [0, np.exp(1j*np.pi/4)]], dtype=np.complex64)
+    unitary = np.array([[1, 0], [0, np.exp(1j*np.pi/4)]], dtype=np.complex128)
 
 
 class CNOTGate(ControlledGate):
-    unitary = np.array([[0, 1], [1, 0]], dtype=np.complex64)
+    unitary = np.array([[0, 1], [1, 0]], dtype=np.complex128)
 
 
 class QNNet(HeurFnNNet):
@@ -160,7 +155,7 @@ class QCircuit(Environment):
         TODO: look into more sophisticated way of randomly generating unitary matrices,
         such as http://home.lu.lv/~sd20008/papers/essays/Random%20unitary%20[paper].pdf
         """
-        states = [QState(np.eye(2**self.num_qubits, dtype=np.complex64)) for _ in range(num_states)]
+        states = [QState(np.eye(2**self.num_qubits, dtype=np.complex128)) for _ in range(num_states)]
         num_walk_steps = np.random.randint(self.start_walk_max, size=(len(states,)))
         states_walk = self._random_walk(states, num_walk_steps)
         return states_walk
