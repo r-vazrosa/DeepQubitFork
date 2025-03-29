@@ -26,7 +26,6 @@ class QGoal(Goal):
     
 
 class QAction(Action, ABC):
-    qubit: int
     unitary: np.ndarray[np.complex128]
     full_gate_unitary: np.ndarray[np.complex128]
     
@@ -40,6 +39,7 @@ class QAction(Action, ABC):
 
 
 class OneQubitGate(QAction):
+    qubit: int
     unitary: np.ndarray[np.complex128]
     full_gate_unitary: np.ndarray[np.complex128]
     
@@ -62,6 +62,8 @@ class OneQubitGate(QAction):
     
 
 class ControlledGate(QAction):
+    control: int
+    target: int
     unitary: np.ndarray[np.complex128]
     full_gate_unitary: np.ndarray[np.complex128]
 
@@ -84,7 +86,7 @@ class ControlledGate(QAction):
         self.full_gate_unitary = p0_full + p1_full
 
     def __repr__(self) -> str:
-        return '%s(target=%d, control=%d)' % (type(self).__name__, self.target, self.control)
+        return '%s(control=%d, target=%d)' % (type(self).__name__, self.target, self.control)
 
     
 class HGate(OneQubitGate):
@@ -142,11 +144,10 @@ class QCircuit(Environment):
         """
         self.actions = []
         for gate in self.gate_set:
-            if issubclass(gate, OneQubitGate):
-                for i in range(self.num_qubits):
+            for i in range(self.num_qubits):
+                if issubclass(gate, OneQubitGate):
                     self.actions.append(gate(self.num_qubits, i))
-            elif issubclass(gate, ControlledGate):
-                for i in range(self.num_qubits):
+                elif issubclass(gate, ControlledGate):
                     for j in range(self.num_qubits):
                         if i != j:
                             self.actions.append(gate(self.num_qubits, i, j))
