@@ -1,0 +1,2 @@
+torch==2.6.0
+deepxube==0.1.5
