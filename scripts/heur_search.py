@@ -59,10 +59,15 @@ if __name__ == '__main__':
         else:
             paths.append(None)
 
-    # saving paths
-    print('Saving paths to `%s` | min/max/mean: %.2f/%.2f/%.2f' % (args.save_file, \
-        min(path_lens), max(path_lens), sum(path_lens) / len(path_lens)))
+    if len(path_lens) == 0:
+        print('Could not find any paths')
     
-    with open(args.save_file, 'wb') as f:
-        pickle.dump({'goals': goals, 'paths': paths}, f)
+    else:
+        # saving paths
+        print('Found %d/%d unitaries' % (len(path_lens), len(goals)))
+        print('Saving paths to `%s` | min/max/mean: %.2f/%.2f/%.2f' % (args.save_file, \
+            min(path_lens), max(path_lens), sum(path_lens) / len(path_lens)))
+        
+        with open(args.save_file, 'wb') as f:
+            pickle.dump({'goals': goals, 'paths': paths}, f)
 
