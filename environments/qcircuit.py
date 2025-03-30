@@ -93,14 +93,17 @@ class ControlledGate(QAction, ABC):
 class HGate(OneQubitGate):
     unitary = np.array([[1, 1], [1, -1]], dtype=np.complex128) / np.sqrt(2)
 
-    
 class SGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, 1j]], dtype=np.complex128)
 
+class SdgGate(OneQubitGate):
+    unitary = np.array([[1, 0], [0, -1j]], dtype=np.complex128)
     
 class TGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, np.exp(1j*np.pi/4)]], dtype=np.complex128)
 
+class TdgGate(OneQubitGate):
+    unitary = np.array([[1, 0], [0, np.exp(-1j*np.pi/4)]], dtype=np.complex128)
 
 class CNOTGate(ControlledGate):
     unitary = np.array([[0, 1], [1, 0]], dtype=np.complex128)
@@ -129,7 +132,7 @@ class QNNet(HeurFnNNet):
 
 
 class QCircuit(Environment):
-    gate_set = [HGate, SGate, TGate, CNOTGate]
+    gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, CNOTGate]
 
     def __init__(self, num_qubits: int, epsilon: float = 0.01):
         super(QCircuit, self).__init__(env_name='qcircuit')
