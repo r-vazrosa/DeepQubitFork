@@ -17,7 +17,11 @@ class QState(State):
         self.unitary = unitary
     
     def __hash__(self):
-        return hash(sha256(self.unitary.tobytes()).hexdigest())
+        """
+        Creates fixed-length representation of unitary operator
+        """
+        tolerance: float = 0.001
+        return hash(tuple(np.round(self.unitary.flatten() / tolerance)))
 
     def __eq__(self, other: Self):
         return mats_close(self.unitary, other.unitary, self.epsilon)
@@ -117,7 +121,7 @@ class QNNet(HeurFnNNet):
         )
     
     def forward(self, states_goals_l: List[torch.Tensor]) -> torch.Tensor:
-        x = torch.cat(states_goals_l, dim=1).float()
+        x: torch.Tensor = states_goals_l[0].float()
         x = self.fc_input(x)
         x = self.resnet(x)
         x = self.fully_connected(x)
@@ -210,7 +214,7 @@ class QCircuit(Environment):
         @returns: List of numpy arrays of flattened state and unitaries (in float format)
         """
         total_unitaries = [np.matmul(y.unitary, invert_unitary(x.unitary)) for (x, y) in zip(states, goals)]
-        return [np.vstack([unitary_to_nnet_input(x) for x in total_unitaries])]
+        return [np.vstack([unitary_to_nnet_input(x) for x in total_unitaries]).astype(float)]
 
     def get_v_nnet(self) -> HeurFnNNet:
         input_size: int = (2**(2*self.num_qubits + 1))

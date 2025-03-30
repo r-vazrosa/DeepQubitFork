@@ -3,7 +3,7 @@ import numpy as np
 from typing import List
 
 
-# identity matrix on 2 qubits
+# identity matrix on one qubit
 I = np.eye(2, dtype=np.complex128)
 # 'zero' project for one qubit
 P0 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
