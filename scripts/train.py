@@ -1,7 +1,11 @@
+import torch
 from argparse import ArgumentParser
 from deepxube.training import avi
 
 from environments.qcircuit import QCircuit
+
+# setting random seed to ensure reproducibility
+torch.manual_seed(1234)
 
 
 if __name__ == '__main__':

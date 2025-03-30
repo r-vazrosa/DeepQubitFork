@@ -58,3 +58,13 @@ def random_unitary(dim: int) -> np.ndarray[np.complex128]:
     @return: Numpy complex array of unitary matrix
     """
     return scipy.stats.unitary_group.rvs(dim)
+
+
+def invert_unitary(unitary: np.ndarray[np.complex128]) -> np.ndarray[np.complex128]:
+    """
+    Inverts a unitary matrix
+
+    @param unitary: Numpy complex matrix to invert
+    @returns: Inverted numpy complex matrix
+    """
+    return np.conj(unitary.T)

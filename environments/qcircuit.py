@@ -205,17 +205,22 @@ class QCircuit(Environment):
         Converts quantum state class objects to numpy arrays that can be
         converted to tensors for neural network training
 
+        Also inverts the state matrix and multiplies it to the goal matrix,
+        just passing the resulting unitary to the network, since all that
+        matters is the 'distance' between the two unitaries
+
         @param states: List of quantum circuit states
         @param goals: List of quantum circuit goals
         @returns: List of numpy arrays of flattened state and unitaries (in float format)
         """
-        states_nnet = np.vstack([unitary_to_nnet_input(x.unitary) for x in states])
-        goals_nnet = np.vstack([unitary_to_nnet_input(x.unitary) for x in goals])
-        return [states_nnet, goals_nnet]
+        total_unitaries = [np.matmul(y.unitary, invert_unitary(x.unitary)) for (x, y) in zip(states, goals)]
+        return [np.vstack([unitary_to_nnet_input(x) for x in total_unitaries])]
 
     def get_v_nnet(self) -> HeurFnNNet:
-        input_size: int = (2**(2*self.num_qubits + 2))
+        input_size: int = (2**(2*self.num_qubits + 1))
         return QNNet(input_size, 2000, 4, 400, [200, 100, 80, 20, 1])
+
+    # ------------------- NOT IMPLEMENTED -------------------
 
     def get_q_nnet(self) -> HeurFnNNet:
         raise NotImplementedError()
