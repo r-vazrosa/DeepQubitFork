@@ -36,6 +36,17 @@ def phase_align(unitary: np.ndarray[np.complex128]) -> np.ndarray[np.complex128]
     return np.exp(-1j * phs) * unitary
 
 
+def hash_unitary(unitary: np.ndarray[np.complex128], tolerance: float = 0.001) -> int:
+    """
+    Creates fixed-length representation of unitary operator
+
+    @param unitary: n x n unitary matrix
+    @param tolerance: Level of discretization for matrix values
+    @returns: Integer uniquely representing matrix up to global phase and tolerance
+    """
+    return hash(tuple(np.round(phase_align(unitary).flatten() / tolerance)))
+
+
 def unitary_to_nnet_input(unitary: np.ndarray[np.complex128]) -> np.ndarray[float]:
     """
     Converts a complex-valued unitary matrix into real-valued
@@ -52,7 +63,7 @@ def unitary_to_nnet_input(unitary: np.ndarray[np.complex128]) -> np.ndarray[floa
     return unitary_nnet
 
 
-def mats_close(mat1: np.ndarray[np.complex128], mat2: np.ndarray[np.complex128], epsilon: float) -> bool:
+def unitaries_close(mat1: np.ndarray[np.complex128], mat2: np.ndarray[np.complex128], epsilon: float) -> bool:
     """
     Computes the distance between two matrices using the operator norm
     return whether they are within a certain tolerance 'epsilon'

@@ -17,14 +17,10 @@ class QState(State):
         self.unitary = unitary
     
     def __hash__(self):
-        """
-        Creates fixed-length representation of unitary operator
-        """
-        tolerance: float = 0.001
-        return hash(tuple(np.round(self.unitary.flatten() / tolerance)))
+        return hash_unitary(self.unitary)
 
     def __eq__(self, other: Self):
-        return mats_close(self.unitary, other.unitary, self.epsilon)
+        return unitaries_close(self.unitary, other.unitary, self.epsilon)
 
 
 class QGoal(Goal):
@@ -201,7 +197,7 @@ class QCircuit(Environment):
         @param goals: List of goals to check against
         @returns: List of bools representing solved/not-solved
         """
-        return [mats_close(state.unitary, goal.unitary, self.epsilon) for (state, goal) in zip(states, goals)]
+        return [unitaries_close(state.unitary, goal.unitary, self.epsilon) for (state, goal) in zip(states, goals)]
 
     def states_goals_to_nnet_input(self, states: List[QState], goals: List[QGoal]) -> List[np.ndarray[float]]:
         """
