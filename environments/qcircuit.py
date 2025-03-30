@@ -10,6 +10,17 @@ from utils.matrix_utils import *
 
 
 class QState(State):
+    """
+    Current state of quantum circuit, represented by a unitary matrix
+    """
+
+    # tolerance for comparing unitaries between states
+    epsilon: float = 0.01
+    
+    @staticmethod
+    def set_epsilon(_epsilon: float):
+        QState.epsilon = _epsilon
+
     def __init__(self, unitary: np.ndarray[np.complex128] = None):
         self.unitary = unitary
     
@@ -17,7 +28,7 @@ class QState(State):
         return hash(sha256(self.unitary.tobytes()).hexdigest())
 
     def __eq__(self, other: Self):
-        return mats_close(self.unitary, other.unitary)
+        return mats_close(self.unitary, other.unitary, self.epsilon)
 
 
 class QGoal(Goal):
@@ -38,7 +49,7 @@ class QAction(Action, ABC):
         pass
 
 
-class OneQubitGate(QAction):
+class OneQubitGate(QAction, ABC):
     qubit: int
     unitary: np.ndarray[np.complex128]
     full_gate_unitary: np.ndarray[np.complex128]
@@ -48,20 +59,15 @@ class OneQubitGate(QAction):
         self._generate_full_unitary(num_qubits)
     
     def _generate_full_unitary(self, num_qubits: int):
-        mats: List[np.ndarray] = []
-        for i in range(num_qubits):
-            if i == self.qubit:
-                mats.append(self.unitary)
-            else:
-                mats.append(I)
-        
+        mats = [I] * num_qubits
+        mats[self.qubit] = self.unitary
         self.full_gate_unitary = tensor_product(mats)
 
     def __repr__(self) -> str:
         return '%s(qubit=%d)' % (type(self).__name__, self.qubit)
     
 
-class ControlledGate(QAction):
+class ControlledGate(QAction, ABC):
     control: int
     target: int
     unitary: np.ndarray[np.complex128]
@@ -73,12 +79,11 @@ class ControlledGate(QAction):
         self._generate_full_unitary(num_qubits)
 
     def _generate_full_unitary(self, num_qubits: int):
-        p0_mats = [I for _ in range(num_qubits)]
-        p1_mats = [I for _ in range(num_qubits)]
+        p0_mats = [I] * num_qubits
+        p1_mats = [I] * num_qubits
 
         p0_mats[self.control] = P0
         p1_mats[self.control] = P1
-        p0_mats[self.target] = I
         p1_mats[self.target] = self.unitary
         
         p0_full = tensor_product(p0_mats)
@@ -133,9 +138,11 @@ class QCircuit(Environment):
     def __init__(self, num_qubits: int):
         super(QCircuit, self).__init__(env_name='qcircuit')
         
+        self.epsilon: float = 0.01
         self.start_walk_max: int = 100
         self.num_qubits: int = num_qubits
         self._generate_actions()
+        QState.set_epsilon(self.epsilon)
 
     def _generate_actions(self):
         """
@@ -180,6 +187,12 @@ class QCircuit(Environment):
         return next_states, transition_costs
 
     def sample_goal(self, states_start: List[QState], states_goal: List[QState]) -> List[QGoal]:
+        """
+        Creates goal objects from state-goal pairs
+
+        TODO: add 'noise' to goal unitaries to make model
+        more robust to dealing with approximation
+        """
         return [QGoal(x.unitary) for x in states_goal]
     
     def is_solved(self, states: List[QState], goals: List[QGoal]) -> List[bool]:
@@ -189,11 +202,8 @@ class QCircuit(Environment):
         @param states: List of quantum circuit states
         @param goals: List of goals to check against
         @returns: List of bools representing solved/not-solved
-
-        TODO: Implement more sophisticated way of checking of two
-        unitaries are 'close', possibly using some kind of matrix norm
         """
-        return [mats_close(state.unitary, goal.unitary) for (state, goal) in zip(states, goals)]
+        return [mats_close(state.unitary, goal.unitary, self.epsilon) for (state, goal) in zip(states, goals)]
 
     def states_goals_to_nnet_input(self, states: List[QState], goals: List[QGoal]) -> List[np.ndarray[float]]:
         """
