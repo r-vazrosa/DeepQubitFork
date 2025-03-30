@@ -5,7 +5,7 @@ from deepxube.training import avi
 from environments.qcircuit import QCircuit
 
 # setting random seed to ensure reproducibility
-torch.manual_seed(1234)
+torch.manual_seed(123)
 
 
 if __name__ == '__main__':

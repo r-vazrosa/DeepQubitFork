@@ -12,10 +12,6 @@ from utils.matrix_utils import *
 class QState(State):
     # tolerance for comparing unitaries between states
     epsilon: float = 0.01
-    
-    @staticmethod
-    def set_epsilon(_epsilon: float):
-        QState.epsilon = _epsilon
 
     def __init__(self, unitary: np.ndarray[np.complex128] = None):
         self.unitary = unitary
@@ -138,7 +134,7 @@ class QCircuit(Environment):
         self.epsilon: float = epsilon
         
         self._generate_actions()
-        QState.set_epsilon(self.epsilon)
+        QState.epsilon = self.epsilon
 
     def _generate_actions(self):
         """

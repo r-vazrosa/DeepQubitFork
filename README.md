@@ -20,6 +20,11 @@ Compiling quantum circuits from arbitrary gate sets to approximate unitary opera
     pip install -r requirements.txt
     ```
 
+    Note: when installing dependencies on the UofSC research cluster, instead run
+    ```
+    TMPDIR=/work/`whoami`/pip_cache pip install --cache-dir /work/`whoami`/pip_cache -r requirements.txt
+    ```
+
 4. Run the project setup script
 
     ```
