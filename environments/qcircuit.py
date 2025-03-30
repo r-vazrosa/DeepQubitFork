@@ -10,10 +10,6 @@ from utils.matrix_utils import *
 
 
 class QState(State):
-    """
-    Current state of quantum circuit, represented by a unitary matrix
-    """
-
     # tolerance for comparing unitaries between states
     epsilon: float = 0.01
     
@@ -135,12 +131,12 @@ class QNNet(HeurFnNNet):
 class QCircuit(Environment):
     gate_set = [HGate, SGate, TGate, CNOTGate]
 
-    def __init__(self, num_qubits: int):
+    def __init__(self, num_qubits: int, epsilon: float = 0.01):
         super(QCircuit, self).__init__(env_name='qcircuit')
         
-        self.epsilon: float = 0.01
-        self.start_walk_max: int = 100
         self.num_qubits: int = num_qubits
+        self.epsilon: float = epsilon
+        
         self._generate_actions()
         QState.set_epsilon(self.epsilon)
 
@@ -149,15 +145,20 @@ class QCircuit(Environment):
         Generates the action set for n qubits given a specific gate set
         by looping over each possible gate at each qubit
         """
-        self.actions = []
+        self.actions: List[QAction] = []
         for gate in self.gate_set:
+            # looping over each gate in the gate set
             for i in range(self.num_qubits):
+                # looping over each qubit
                 if issubclass(gate, OneQubitGate):
+                    # if the gate only acts on one qubit,
+                    # add gate to all qubits once
                     self.actions.append(gate(self.num_qubits, i))
                 elif issubclass(gate, ControlledGate):
+                    # if the gate is a controlled gate,
+                    # loop over each possible pair of qubits
                     for j in range(self.num_qubits):
-                        if i != j:
-                            self.actions.append(gate(self.num_qubits, i, j))
+                        if i != j: self.actions.append(gate(self.num_qubits, i, j))
 
     def get_start_states(self, num_states: int) -> List[QState]:
         """
@@ -165,14 +166,8 @@ class QCircuit(Environment):
 
         @param num_states: Number of states to generate
         @returns: Generated states
-
-        TODO: look into more sophisticated way of randomly generating unitary matrices,
-        such as http://home.lu.lv/~sd20008/papers/essays/Random%20unitary%20[paper].pdf
         """
-        states = [QState(np.eye(2**self.num_qubits, dtype=np.complex128)) for _ in range(num_states)]
-        num_walk_steps = np.random.randint(self.start_walk_max, size=(len(states,)))
-        states_walk = self._random_walk(states, num_walk_steps)
-        return states_walk
+        return [QState(random_unitary(2**self.num_qubits)) for _ in range(num_states)]
 
     def get_state_actions(self, states: List[QState]) -> List[List[QAction]]:
         return [[x for x in self.actions] for _ in states]

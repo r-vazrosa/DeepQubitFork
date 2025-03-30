@@ -16,11 +16,18 @@ if __name__ == '__main__':
     parser.add_argument('--greedy_update_step_max', type=int, default=5)
     parser.add_argument('--num_update_procs', type=int, default=5)
     args = parser.parse_args()
-    args_dict = vars(args)
 
     # environment setup
-    env = QCircuit(num_qubits=args_dict['num_qubits'])
-    del args_dict['num_qubits']
+    env = QCircuit(num_qubits=args.num_qubits)
 
     # running approximate value iteration
-    avi.train(env=env, **args_dict)
+    avi.train(
+        env=env,
+        nnet_dir=args.nnet_dir,
+        step_max=args.step_max,
+        batch_size=args.batch_size,
+        itrs_per_update=args.itrs_per_update,
+        max_itrs=args.max_itrs,
+        greedy_update_step_max=args.greedy_update_step_max,
+        num_update_procs=args.num_update_procs,
+    )
