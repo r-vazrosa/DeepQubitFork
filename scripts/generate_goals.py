@@ -1,8 +1,11 @@
+"""
+Script that generates a uniformly distributed
+random sample of unitary matrices for 'n' qubits
+"""
 import pickle
 import numpy as np
 from argparse import ArgumentParser
 from typing import List, Dict
-from environments.qcircuit import QGoal
 from utils.matrix_utils import random_unitary
 
 
@@ -18,10 +21,9 @@ if __name__ == '__main__':
     print('Generating %d random %d-qubit unitary matrices' % (args.num_goals, args.num_qubits))
     random_mats: List[np.ndarray[np.complex128]] = \
         [random_unitary(2**args.num_qubits) for _ in range(args.num_goals)]
-    goals: List[QGoal] = [QGoal(x) for x in random_mats]
     
     # saving data
     print('Saving data to `%s`' % args.save_file)
-    save_data: Dict = {'goals': goals}
+    save_data: Dict = {'unitaries': random_mats, 'num_qubits': args.num_qubits}
     with open(args.save_file, 'wb') as f:
         pickle.dump(save_data, f)

@@ -33,8 +33,20 @@ Compiling quantum circuits from arbitrary gate sets to approximate unitary opera
 
 ## Training
 
-To train a model for 2 qubit compilation, run
+Use the train script, for example:
 
 ```
 python scripts/train.py --num_qubits 2 --nnet_dir tmp/qcircuit2
 ```
+
+## Evaluating
+
+1. In order to evaluate a model, first generate random goal states
+    ```
+    python scripts/generate_goals.py --num_qubits 2 --num_goals 1000 --save_file tmp/goals.pkl
+    ```
+
+2. Then run A* search to find paths to the goal states
+   ```
+   python scripts/heur_search.py --nnet_weights tmp/qcircuit2/current.pt --goals_file tmp/goals.pkl --save_file tmp/paths.pkl
+   ```
