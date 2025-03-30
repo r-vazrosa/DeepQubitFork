@@ -39,15 +39,30 @@ def unitary_to_nnet_input(unitary: np.ndarray[np.complex128]) -> np.ndarray[floa
     return unitary_nnet
 
 
+def phase_align(unitary: np.ndarray[np.complex128]) -> np.ndarray[np.complex128]:
+    """
+    Aligns the global phase of a unitary so that the top left
+    element has complex phase 0
+
+    @param unitary: n x n unitary matrix to align
+    @returns: n x n re-aligned unitary matrix
+    """
+    phs: float = np.angle(unitary[0][0])
+    return np.exp(-1j * phs) * unitary
+
+
 def mats_close(mat1: np.ndarray[np.complex128], mat2: np.ndarray[np.complex128], epsilon: float) -> bool:
     """
     Computes the distance between two matrices using the operator norm
     return whether they are within a certain tolerance 'epsilon'
 
+    Uses `phase_align` to make sure that a difference in the global phase
+    of the two unitaries is removed and does not return false negatives
+
     @param epsilon: Decimal number representing error tolerance
     @returns: Whether the two matrices are close
     """
-    return np.linalg.norm(mat1 - mat2) <= epsilon
+    return np.linalg.norm(phase_align(mat1) - phase_align(mat2)) <= epsilon
 
 
 def random_unitary(dim: int) -> np.ndarray[np.complex128]:
