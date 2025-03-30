@@ -17,6 +17,7 @@ if __name__ == '__main__':
     parser.add_argument('--nnet_weights', type=str, required=True)
     parser.add_argument('--goals_file', type=str, required=True)
     parser.add_argument('--save_file', type=str, required=True)
+    parser.add_argument('--verbose', type=str, default=False)
     parser.add_argument('--max_steps', type=int, default=100)
     parser.add_argument('--batch_size', type=int, default=1000)
     parser.add_argument('--epsilon', type=float, default=1e-2)
@@ -44,8 +45,8 @@ if __name__ == '__main__':
     # running search
     step: int = 0
     while np.any([not x.finished for x in astar.instances]) and step < args.max_steps:
-        astar.step(heuristic_fn, args.batch_size, verbose=True)
-        print('Solved: %d/%d' % (sum([int(x.finished) for x in astar.instances]), len(goals)))
+        print('Step: %d, solved: %d/%d\n' % (step, sum([int(x.finished) for x in astar.instances]), len(goals)))
+        astar.step(heuristic_fn, args.batch_size, verbose=args.verbose)
         step += 1
     
     # getting paths
@@ -70,4 +71,3 @@ if __name__ == '__main__':
         
         with open(args.save_file, 'wb') as f:
             pickle.dump({'goals': goals, 'paths': paths}, f)
-
