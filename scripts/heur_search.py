@@ -29,8 +29,7 @@ if __name__ == '__main__':
 
     # environment setup
     env: QCircuit = QCircuit(num_qubits=data['num_qubits'], epsilon=args.epsilon)
-    # goals: List[QGoal] = [QGoal(x) for x in data['unitaries']]
-    goals = [QGoal(data['unitaries'][0])]
+    goals: List[QGoal] = [QGoal(x) for x in data['unitaries']]
     start_states: List[QState] = [QState(tensor_product([I] * data['num_qubits'])) for _ in goals]
     weights: List[float] = [0.2] * len(start_states)
 
@@ -46,6 +45,7 @@ if __name__ == '__main__':
     step: int = 0
     while np.any([not x.finished for x in astar.instances]) and step < args.max_steps:
         astar.step(heuristic_fn, args.batch_size, verbose=True)
+        print('Solved: %d/%d' % (sum([int(x.finished) for x in astar.instances]), len(goals)))
         step += 1
     
     # getting paths
