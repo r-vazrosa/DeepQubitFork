@@ -25,7 +25,7 @@ Compiling quantum circuits from arbitrary gate sets to approximate unitary opera
     TMPDIR=/work/`whoami`/pip_cache pip install --cache-dir /work/`whoami`/pip_cache -r requirements.txt
     ```
 
-4. Run the project setup script
+4. Run the project setup script every time you open a new shell
 
     ```
     source setup.sh
@@ -36,17 +36,34 @@ Compiling quantum circuits from arbitrary gate sets to approximate unitary opera
 Use the train script, for example:
 
 ```
-python scripts/train.py --num_qubits 2 --nnet_dir tmp/qcircuit2
+python scripts/train.py \
+    --num_qubits 2 \
+    --nnet_dir tmp/model \
+    --step_max 100 \
+    --batch_size 1000 \
+    --itrs_per_update 1000 \
+    --max_itrs 100000
 ```
 
 ## Evaluating
 
-1. In order to evaluate a model, first generate random goal states
-    ```
-    python scripts/generate_goals.py --num_qubits 2 --num_goals 1000 --save_file tmp/goals.pkl
-    ```
+In order to evaluate a model, first generate random goal states
+```
+python scripts/generate_goals.py \
+    --num_qubits 2 \
+    --num_goals 1000 \
+    --save_file tmp/goals.pkl
+```
 
-2. Then run A* search to find paths to the goal states
-   ```
-   python scripts/heur_search.py --nnet_weights tmp/qcircuit2/current.pt --goals_file tmp/goals.pkl --save_file tmp/paths.pkl
-   ```
+Then run A* search to find paths to the goal states
+```
+python scripts/search.py \
+    --nnet_weights tmp/model/current.pt \
+    --goals_file tmp/goals.pkl \
+    --save_file tmp/paths.pkl
+```
+
+The performance can be evaluated against QisKit's compilation algorithms
+```
+python scripts/qiskit_compile.py --goals_file tmp/goals.pkl
+```

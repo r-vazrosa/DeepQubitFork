@@ -51,7 +51,7 @@ if __name__ == '__main__':
                            for (x, y) in zip(approx_circuits, unitaries)]
     
     print('Done')
-    print('Gate count (min/max/mean): %d/%d/%.2f' % (min(gate_depths), max(gate_depths), \
+    print('Gate count (min/max/mean): %d/%d/%.3f' % (min(gate_depths), max(gate_depths), \
                                                      sum(gate_depths) / len(gate_depths)))
-    print('Errors: (min/max/mean): %.2f/%.2f/%.2f' % (min(errors), max(errors), \
+    print('Errors (min/max/mean): %.3f/%.3f/%.3f' % (min(errors), max(errors), \
                                                       sum(errors) / len(errors)))
