@@ -1,4 +1,4 @@
-# DeepQube
+# DeepQubit
 
 Compiling quantum circuits from arbitrary gate sets to approximate unitary operators using reinforcement learning and search
 (based on [DeepCubeA](https://cse.sc.edu/~foresta/assets/files/SolvingTheRubiksCubeWithDeepReinforcementLearningAndSearch_Final.pdf))
@@ -10,8 +10,8 @@ Compiling quantum circuits from arbitrary gate sets to approximate unitary opera
 2. Create and activate conda environment
    
     ```
-    conda create --name deepqube python=3.12
-    conda activate deepqube
+    conda create --name deepqubit python=3.12
+    conda activate deepqubit
     ```
 
 3. Install the project dependencies
