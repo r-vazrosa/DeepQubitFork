@@ -63,18 +63,18 @@ def unitary_to_nnet_input(unitary: np.ndarray[np.complex128]) -> np.ndarray[floa
     return unitary_nnet
 
 
-def unitaries_close(mat1: np.ndarray[np.complex128], mat2: np.ndarray[np.complex128], epsilon: float) -> bool:
+def unitary_distance(mat1: np.ndarray[np.complex128], mat2: np.ndarray[np.complex128]) -> float:
     """
     Computes the distance between two matrices using the operator norm
-    return whether they are within a certain tolerance 'epsilon'
 
     Uses `phase_align` to make sure that a difference in the global phase
     of the two unitaries is removed and does not return false negatives
 
-    @param epsilon: Decimal number representing error tolerance
-    @returns: Whether the two matrices are close
+    @param mat1: First unitary
+    @param mat2: Second unitary
+    @returns: Distance as floating point number
     """
-    return np.linalg.norm(phase_align(mat1) - phase_align(mat2)) <= epsilon
+    return np.linalg.norm(phase_align(mat1) - phase_align(mat2))
 
 
 def random_unitary(dim: int) -> np.ndarray[np.complex128]:

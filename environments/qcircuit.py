@@ -19,7 +19,7 @@ class QState(State):
         return hash_unitary(self.unitary)
 
     def __eq__(self, other: Self):
-        return unitaries_close(self.unitary, other.unitary, self.epsilon)
+        return unitary_distance(self.unitary, other.unitary) <= self.epsilon
 
 
 class QGoal(Goal):
@@ -196,7 +196,8 @@ class QCircuit(Environment):
         @param goals: List of goals to check against
         @returns: List of bools representing solved/not-solved
         """
-        return [unitaries_close(state.unitary, goal.unitary, self.epsilon) for (state, goal) in zip(states, goals)]
+        return [unitary_distance(state.unitary, goal.unitary) <= self.epsilon \
+                for (state, goal) in zip(states, goals)]
 
     def states_goals_to_nnet_input(self, states: List[QState], goals: List[QGoal]) -> List[np.ndarray[float]]:
         """
