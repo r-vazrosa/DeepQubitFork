@@ -1,12 +1,17 @@
 import pickle
 from typing import List, Dict
+import warnings
 import numpy as np
 from argparse import ArgumentParser
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, transpile
 from qiskit.transpiler.passes.synthesis import SolovayKitaev
 from qiskit.synthesis import generate_basic_approximations
 from qiskit.quantum_info import Operator
 from utils.matrix_utils import unitary_distance
+from qiskit.transpiler import generate_preset_pass_manager
+
+# bandaid fix for weird numpy error in SKD
+warnings.filterwarnings('ignore')
 
 
 if __name__ == '__main__':
@@ -33,17 +38,17 @@ if __name__ == '__main__':
 
     # running compilation
     print('Compiling %d unitaries to discrete approximations' % len(unitaries))
-    approx_circuits: List[QuantumCircuit] = []
-    if num_qubits == 1:
-        # running Solovay-Kitaev on one-qubit unitaries
-        basis_gates = ['h', 't', 'tdg', 's', 'sdg']
-        approx = generate_basic_approximations(basis_gates, depth=args.approximation_depth)
-        skd = SolovayKitaev(recursion_degree=args.recursion_degree, basic_approximations=approx)
-        approx_circuits = [skd(x) for x in circuits]
-    
-    else:
-        # TODO: implement synthesis for more than 1 qubit
-        pass
+
+    # optimize circuits to parametrized 1-qubit unitaries and cnots
+    parametrized_circuits = [transpile(x, basis_gates=['u3', 'cx'], \
+                                       optimization_level=3) for x in circuits]
+
+    # running Solovay-Kitaev algorithm to approximate unitaries
+    # TODO: figure out why SKD gives scary numpy linear algebra divide by zero errors
+    basis_gates = ['h', 't', 'tdg', 's', 'sdg']
+    approx = generate_basic_approximations(basis_gates, depth=args.approximation_depth)
+    skd = SolovayKitaev(recursion_degree=args.recursion_degree, basic_approximations=approx)
+    approx_circuits = [skd(x) for x in parametrized_circuits]
 
     # printing out info about compilation
     gate_depths: List[int] = [x.depth() for x in approx_circuits]
