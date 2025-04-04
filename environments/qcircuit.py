@@ -89,13 +89,6 @@ class ControlledGate(QAction, ABC):
         return '%s(control=%d, target=%d)' % (type(self).__name__, self.target, self.control)
 
 
-class GlobalPhaseGate(QAction, ABC):
-    phase: np.complex128
-    
-    def apply_to(self, state: QState) -> QState:
-        return QState(phase * state.unitary)
-
-
 class HGate(OneQubitGate):
     unitary = np.array([[1, 1], [1, -1]], dtype=np.complex128) / np.sqrt(2)
 
@@ -114,12 +107,9 @@ class TdgGate(OneQubitGate):
 class CNOTGate(ControlledGate):
     unitary = np.array([[0, 1], [1, 0]], dtype=np.complex128)
 
-class WGate(GlobalPhaseGate):
-    phase = np.exp(1j*np.pi/4)
-
 
 class QCircuit(Environment):
-    gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, WGate, CNOTGate]
+    gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, CNOTGate]
 
     def __init__(self, num_qubits: int, epsilon: float = 0.01, nnet_config: Dict = None):
         super(QCircuit, self).__init__(env_name='qcircuit')
