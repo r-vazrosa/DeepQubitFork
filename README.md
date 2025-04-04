@@ -58,7 +58,7 @@ python scripts/generate_goals.py \
 Then run A* search to find paths to the goal states
 ```
 python scripts/search.py \
-    --nnet_weights tmp/model \
+    --nnet_dir tmp/model \
     --goals_file tmp/goals.pkl \
     --save_file tmp/paths.pkl
 ```

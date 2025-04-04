@@ -22,8 +22,17 @@ class QState(State):
 
 
 class QGoal(Goal):
+    # tolerance for comparing unitaries between goals
+    epsilon: float = 0.01
+
     def __init__(self, unitary: np.ndarray[np.complex128]):
         self.unitary = unitary
+    
+    def __hash__(self):
+        return hash_unitary(self.unitary)
+
+    def __eq__(self, other: Self):
+        return unitary_distance(self.unitary, other.unitary) <= self.epsilon
     
 
 class QAction(Action, ABC):
@@ -33,10 +42,6 @@ class QAction(Action, ABC):
     def apply_to(self, state: QState) -> QState:
         new_state_unitary = np.matmul(self.full_gate_unitary, state.unitary).astype(np.complex128)
         return QState(new_state_unitary)
-    
-    @abstractmethod
-    def _generate_full_unitary(self):
-        pass
 
 
 class OneQubitGate(QAction, ABC):
@@ -83,7 +88,14 @@ class ControlledGate(QAction, ABC):
     def __repr__(self) -> str:
         return '%s(control=%d, target=%d)' % (type(self).__name__, self.target, self.control)
 
+
+class GlobalPhaseGate(QAction, ABC):
+    phase: np.complex128
     
+    def apply_to(self, state: QState) -> QState:
+        return QState(phase * state.unitary)
+
+
 class HGate(OneQubitGate):
     unitary = np.array([[1, 1], [1, -1]], dtype=np.complex128) / np.sqrt(2)
 
@@ -102,15 +114,20 @@ class TdgGate(OneQubitGate):
 class CNOTGate(ControlledGate):
     unitary = np.array([[0, 1], [1, 0]], dtype=np.complex128)
 
+class WGate(GlobalPhaseGate):
+    phase = np.exp(1j*np.pi/4)
+
 
 class QCircuit(Environment):
-    gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, CNOTGate]
+    gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, WGate, CNOTGate]
 
     def __init__(self, num_qubits: int, epsilon: float = 0.01, nnet_config: Dict = None):
         super(QCircuit, self).__init__(env_name='qcircuit')
         
         self.num_qubits: int = num_qubits
         self.epsilon: float = epsilon
+        QState.epsilon = epsilon
+        QGoal.epsilon = epsilon
         
         self._generate_actions()
 
@@ -197,7 +214,7 @@ class QCircuit(Environment):
         return [np.vstack([unitary_to_nnet_input(x) for x in total_unitaries]).astype(float)]
 
     def get_v_nnet(self) -> HeurFnNNet:
-        input_size: int = (2**(2*self.num_qubits + 1))
+        input_size: int = 2**(2*self.num_qubits + 1)
         return QNNet(input_size=input_size, **self.nnet_config)
 
     # ------------------- NOT IMPLEMENTED -------------------

@@ -35,7 +35,7 @@ if __name__ == '__main__':
     env: QCircuit = QCircuit(num_qubits=data['num_qubits'], epsilon=args.epsilon, nnet_config=nnet_config)
     goals: List[QGoal] = [QGoal(x) for x in data['unitaries']]
     start_states: List[QState] = [QState(tensor_product([I] * data['num_qubits'])) for _ in goals]
-    weights: List[float] = [0.2] * len(start_states)
+    weights: List[float] = [0.8] * len(start_states)
 
     # loading heuristic function
     device, devices, on_gpu = nnet_utils.get_device()
