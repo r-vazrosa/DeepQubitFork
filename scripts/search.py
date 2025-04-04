@@ -2,6 +2,7 @@
 Script that uses A* search to synthesize a
 unitary matrix from an arbitrary gate set
 """
+import os
 import pickle
 from argparse import ArgumentParser
 from typing import Dict, List, Optional
@@ -9,12 +10,13 @@ from deepxube.search.astar import AStar, get_path
 from deepxube.nnet import nnet_utils
 from environments.qcircuit import QCircuit, QGoal, QState, QAction
 from utils.matrix_utils import *
+from nnet.nnet_utils import load_nnet_config
 
 
 if __name__ == '__main__':
     # parsing command line arguments
     parser = ArgumentParser()
-    parser.add_argument('--nnet_weights', type=str, required=True)
+    parser.add_argument('--nnet_dir', type=str, required=True)
     parser.add_argument('--goals_file', type=str, required=True)
     parser.add_argument('--save_file', type=str, required=True)
     parser.add_argument('--verbose', type=str, default=False)
@@ -29,14 +31,16 @@ if __name__ == '__main__':
         data = pickle.load(f)
 
     # environment setup
-    env: QCircuit = QCircuit(num_qubits=data['num_qubits'], epsilon=args.epsilon)
+    nnet_config: Dict = load_nnet_config(os.path.join(args.nnet_dir, 'nnet_config.yaml'))
+    env: QCircuit = QCircuit(num_qubits=data['num_qubits'], epsilon=args.epsilon, nnet_config=nnet_config)
     goals: List[QGoal] = [QGoal(x) for x in data['unitaries']]
     start_states: List[QState] = [QState(tensor_product([I] * data['num_qubits'])) for _ in goals]
     weights: List[float] = [0.2] * len(start_states)
 
     # loading heuristic function
     device, devices, on_gpu = nnet_utils.get_device()
-    heuristic_fn = nnet_utils.load_heuristic_fn(args.nnet_weights, device, on_gpu, env.get_v_nnet(), env)
+    nnet_weights_file: str = os.path.join(args.nnet_dir, 'current.pt')
+    heuristic_fn = nnet_utils.load_heuristic_fn(nnet_weights_file, device, on_gpu, env.get_v_nnet(), env)
 
     # setup A* search
     astar = AStar(env)

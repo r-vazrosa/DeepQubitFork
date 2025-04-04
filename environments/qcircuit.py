@@ -1,11 +1,10 @@
-import torch
-from torch import nn
 import numpy as np
 from abc import ABC, abstractmethod
-from typing import Self, Tuple, List
+from typing import Self, Tuple, List, Dict
 from deepxube.environments.environment_abstract import Environment, State, Action, Goal, HeurFnNNet
-from deepxube.nnet.pytorch_models import ResnetModel, FullyConnectedModel
 from utils.matrix_utils import *
+from nnet.pytorch_models import QNNet
+from nnet.nnet_utils import load_nnet_config
 
 
 class QState(State):
@@ -104,39 +103,21 @@ class CNOTGate(ControlledGate):
     unitary = np.array([[0, 1], [1, 0]], dtype=np.complex128)
 
 
-class QNNet(HeurFnNNet):
-    def __init__(self, input_size: int, resnet_dim: int, num_resnet_blocks: int, \
-                 fc_input_dim: int, fc_layer_dims: List[int]):
-        super(QNNet, self).__init__(nnet_type='V')
-        
-        self.fc_input = nn.Linear(input_size, resnet_dim)
-        self.resnet = ResnetModel(resnet_dim, num_resnet_blocks, fc_input_dim, batch_norm=False)
-        self.fully_connected = FullyConnectedModel(
-            fc_input_dim,
-            fc_layer_dims,
-            layer_batch_norms=[False] * len(fc_layer_dims),
-            layer_acts=['RELU'] * len(fc_layer_dims),
-        )
-    
-    def forward(self, states_goals_l: List[torch.Tensor]) -> torch.Tensor:
-        x: torch.Tensor = states_goals_l[0].float()
-        x = self.fc_input(x)
-        x = self.resnet(x)
-        x = self.fully_connected(x)
-        return x
-
-
 class QCircuit(Environment):
     gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, CNOTGate]
 
-    def __init__(self, num_qubits: int, epsilon: float = 0.01):
+    def __init__(self, num_qubits: int, epsilon: float = 0.01, nnet_config: Dict = None):
         super(QCircuit, self).__init__(env_name='qcircuit')
         
         self.num_qubits: int = num_qubits
         self.epsilon: float = epsilon
         
         self._generate_actions()
-        QState.epsilon = self.epsilon
+
+        if nnet_config:
+            self.nnet_config = nnet_config
+        else:
+            self.nnet_config = load_nnet_config('./nnet/config/qnnet_default.yaml')
 
     def _generate_actions(self):
         """
@@ -217,7 +198,7 @@ class QCircuit(Environment):
 
     def get_v_nnet(self) -> HeurFnNNet:
         input_size: int = (2**(2*self.num_qubits + 1))
-        return QNNet(input_size, 2000, 4, 400, [200, 100, 80, 20, 1])
+        return QNNet(input_size=input_size, **self.nnet_config)
 
     # ------------------- NOT IMPLEMENTED -------------------
 

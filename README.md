@@ -45,7 +45,7 @@ python scripts/train.py \
     --max_itrs 100000
 ```
 
-## Evaluating
+## Heuristic search
 
 In order to evaluate a model, first generate random goal states
 ```
@@ -58,7 +58,7 @@ python scripts/generate_goals.py \
 Then run A* search to find paths to the goal states
 ```
 python scripts/search.py \
-    --nnet_weights tmp/model/current.pt \
+    --nnet_weights tmp/model \
     --goals_file tmp/goals.pkl \
     --save_file tmp/paths.pkl
 ```

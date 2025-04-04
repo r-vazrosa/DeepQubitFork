@@ -8,7 +8,6 @@ from qiskit.transpiler.passes.synthesis import SolovayKitaev
 from qiskit.synthesis import generate_basic_approximations
 from qiskit.quantum_info import Operator
 from utils.matrix_utils import unitary_distance
-from qiskit.transpiler import generate_preset_pass_manager
 
 # bandaid fix for weird numpy error in SKD
 warnings.filterwarnings('ignore')
@@ -40,8 +39,7 @@ if __name__ == '__main__':
     print('Compiling %d unitaries to discrete approximations' % len(unitaries))
 
     # optimize circuits to parametrized 1-qubit unitaries and cnots
-    parametrized_circuits = [transpile(x, basis_gates=['u3', 'cx'], \
-                                       optimization_level=3) for x in circuits]
+    parametrized_circuits = [transpile(x, basis_gates=['u3', 'cx']) for x in circuits]
 
     # running Solovay-Kitaev algorithm to approximate unitaries
     # TODO: figure out why SKD gives scary numpy linear algebra divide by zero errors
