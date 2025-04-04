@@ -19,7 +19,7 @@ if __name__ == '__main__':
     parser.add_argument('--nnet_dir', type=str, required=True)
     parser.add_argument('--goals_file', type=str, required=True)
     parser.add_argument('--save_file', type=str, required=True)
-    parser.add_argument('--verbose', type=str, default=False)
+    parser.add_argument('--verbose', default=False, action='store_true')
     parser.add_argument('--max_steps', type=int, default=100)
     parser.add_argument('--batch_size', type=int, default=1000)
     parser.add_argument('--epsilon', type=float, default=1e-2)
