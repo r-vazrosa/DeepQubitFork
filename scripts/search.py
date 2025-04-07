@@ -19,7 +19,6 @@ if __name__ == '__main__':
     parser.add_argument('--nnet_dir', type=str, required=True)
     parser.add_argument('--goals_file', type=str, required=True)
     parser.add_argument('--save_file', type=str, required=True)
-    parser.add_argument('--verbose', default=False, action='store_true')
     parser.add_argument('--max_steps', type=int, default=100)
     parser.add_argument('--batch_size', type=int, default=1000)
     parser.add_argument('--epsilon', type=float, default=1e-2)
@@ -50,8 +49,8 @@ if __name__ == '__main__':
     # running search
     step: int = 0
     while np.any([not x.finished for x in astar.instances]) and step < args.max_steps:
-        print('Step: %d, solved: %d/%d\n' % (step, sum([int(x.finished) for x in astar.instances]), len(goals)))
-        astar.step(heuristic_fn, args.batch_size, verbose=args.verbose)
+        astar.step(heuristic_fn, args.batch_size, verbose=True)
+        print('Solved: %d/%d\n' % (step, sum([int(x.finished) for x in astar.instances]), len(goals)))
         step += 1
     
     # getting paths
