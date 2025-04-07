@@ -79,7 +79,7 @@ def unitary_distance(U: np.ndarray[np.complex128], C: np.ndarray[np.complex128],
     
     elif method == 'synthetiq':
         # from paper 'Synthetiq: Fast and Versatile Quantum Circuit Synthesis'
-        M = np.ones(mat1.shape, dtype=np.complex128)
+        M = np.ones(U.shape, dtype=np.complex128)
         tr_cu = np.trace(np.matmul(M * invert_unitary(C), M * U))
         if tr_cu == 0.: tr_cu = 1.
         num = np.linalg.norm(M * U - (tr_cu / np.abs(tr_cu)) * M * C)**2
