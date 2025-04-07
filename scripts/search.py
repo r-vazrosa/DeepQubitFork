@@ -50,7 +50,7 @@ if __name__ == '__main__':
     step: int = 0
     while np.any([not x.finished for x in astar.instances]) and step < args.max_steps:
         astar.step(heuristic_fn, args.batch_size, verbose=True)
-        print('Solved: %d/%d\n' % (step, sum([int(x.finished) for x in astar.instances]), len(goals)))
+        print('Solved: %d/%d\n' % (sum([int(x.finished) for x in astar.instances]), len(goals)))
         step += 1
     
     # getting paths
