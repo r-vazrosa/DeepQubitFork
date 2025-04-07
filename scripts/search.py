@@ -23,6 +23,7 @@ if __name__ == '__main__':
     parser.add_argument('--max_steps', type=int, default=100)
     parser.add_argument('--batch_size', type=int, default=1000)
     parser.add_argument('--epsilon', type=float, default=1e-2)
+    parser.add_argument('--path_weight', type=float, default=0.2)
     args = parser.parse_args()
 
     # loading goal data
@@ -35,7 +36,7 @@ if __name__ == '__main__':
     env: QCircuit = QCircuit(num_qubits=data['num_qubits'], epsilon=args.epsilon, nnet_config=nnet_config)
     goals: List[QGoal] = [QGoal(x) for x in data['unitaries']]
     start_states: List[QState] = [QState(tensor_product([I] * data['num_qubits'])) for _ in goals]
-    weights: List[float] = [0.2] * len(start_states)
+    weights: List[float] = [args.path_weight] * len(start_states)
 
     # loading heuristic function
     device, devices, on_gpu = nnet_utils.get_device()
