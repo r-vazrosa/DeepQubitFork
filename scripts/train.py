@@ -16,6 +16,7 @@ if __name__ == '__main__':
     parser.add_argument('--nnet_config', type=str)
     parser.add_argument('--nnet_dir', type=str, required=True)
     parser.add_argument('--num_qubits', type=int, required=True)
+    parser.add_argument('--epsilon', type=float, default=0.01)
     parser.add_argument('--step_max', type=int, default=30)
     parser.add_argument('--batch_size', type=int, default=100)
     parser.add_argument('--itrs_per_update', type=int, default=1000)
@@ -29,7 +30,11 @@ if __name__ == '__main__':
     if args.nnet_config:
         load_nnet_config(args.nnet_config)
     
-    env = QCircuit(num_qubits=args.num_qubits, nnet_config=nnet_config)
+    env = QCircuit(
+        num_qubits=args.num_qubits,
+        nnet_config=nnet_config,
+        epsilon=args.epsilon,
+    )
 
     if not os.path.exists(args.nnet_dir):
         os.mkdir(args.nnet_dir)

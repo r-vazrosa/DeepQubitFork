@@ -9,9 +9,9 @@ from nnet.nnet_utils import load_nnet_config
 
 class QState(State):
     # tolerance for comparing unitaries between states
-    epsilon: float = 0.01
+    epsilon: float = 0.0001
 
-    def __init__(self, unitary: np.ndarray[np.complex128] = None):
+    def __init__(self, unitary: np.ndarray[np.complex128]):
         self.unitary = unitary
     
     def __hash__(self):
@@ -23,7 +23,7 @@ class QState(State):
 
 class QGoal(Goal):
     # tolerance for comparing unitaries between goals
-    epsilon: float = 0.01
+    epsilon: float = 0.0001
 
     def __init__(self, unitary: np.ndarray[np.complex128]):
         self.unitary = unitary
@@ -116,9 +116,6 @@ class QCircuit(Environment):
         
         self.num_qubits: int = num_qubits
         self.epsilon: float = epsilon
-        QState.epsilon = epsilon
-        QGoal.epsilon = epsilon
-        
         self._generate_actions()
 
         if nnet_config:
@@ -153,7 +150,7 @@ class QCircuit(Environment):
         @param num_states: Number of states to generate
         @returns: Generated states
         """
-        return [QState(random_unitary(2**self.num_qubits)) for _ in range(num_states)]
+        return [QState(tensor_product([I] * self.num_qubits)) for _ in range(num_states)]
 
     def get_state_actions(self, states: List[QState]) -> List[List[QAction]]:
         return [[x for x in self.actions] for _ in states]

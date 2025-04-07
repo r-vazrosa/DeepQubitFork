@@ -63,15 +63,32 @@ def unitary_to_nnet_input(unitary: np.ndarray[np.complex128]) -> np.ndarray[floa
     return unitary_nnet
 
 
-def unitary_distance(mat1: np.ndarray[np.complex128], mat2: np.ndarray[np.complex128]) -> float:
+def unitary_distance(U: np.ndarray[np.complex128], C: np.ndarray[np.complex128], \
+                     method: str = 'synthetiq') -> float:
     """
     Computes the distance between two matrices using the operator norm
 
     @param mat1: First unitary
     @param mat2: Second unitary
+    @param method: Which version of the distance function to use
     @returns: Distance as floating point number
     """
-    return np.linalg.norm(phase_align(mat1) - phase_align(mat2))
+
+    if method == 'frobenius':
+        return np.linalg.norm(phase_align(U) - phase_align(C))
+    
+    elif method == 'synthetiq':
+        U = mat1
+        C = mat2
+        M = np.ones(mat1.shape, dtype=np.complex128)
+        tr_cu = np.trace(np.matmul(M * invert_unitary(C), M * U))
+        if tr_cu == 0.: tr_cu = 1.
+        num = np.linalg.norm(M * U - (tr_cu / np.abs(tr_cu)) * M * C)**2
+        d_sc = np.linalg.norm(num) / np.sqrt(np.linalg.norm(M))
+        return d_sc
+    
+    else:
+        raise Exception('Invalid distance function method')
 
 
 def random_unitary(dim: int) -> np.ndarray[np.complex128]:

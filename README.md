@@ -5,27 +5,13 @@ Compiling quantum circuits from arbitrary gate sets to approximate unitary opera
 
 ## Setup
 
-1. Make sure [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) is installed
-
-2. Create and activate conda environment
-   
-    ```
-    conda create --name deepqubit python=3.12
-    conda activate deepqubit
-    ```
-
-3. Install the project dependencies
+1. Install project dependencies
 
     ```
     pip install -r requirements.txt
     ```
 
-    Note: when installing dependencies on the UofSC research cluster, instead run
-    ```
-    TMPDIR=/work/`whoami`/pip_cache pip install --cache-dir /work/`whoami`/pip_cache -r requirements.txt
-    ```
-
-4. Run the project setup script every time you open a new shell
+2. Run the project setup script every time you open a new shell
 
     ```
     source setup.sh
