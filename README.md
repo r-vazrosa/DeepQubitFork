@@ -33,12 +33,12 @@ python scripts/train.py \
 
 ## Heuristic search
 
-In order to evaluate a model, first generate random goal states
+In perform heuristic search using a model, first generate random goal states
 ```
 python scripts/generate_goals.py \
     --num_qubits 2 \
     --num_goals 1000 \
-    --save_file tmp/goals.pkl
+    --pkl_file tmp/goals.pkl
 ```
 
 Then run A* search to find paths to the goal states
@@ -47,9 +47,4 @@ python scripts/search.py \
     --nnet_dir tmp/model \
     --goals_file tmp/goals.pkl \
     --save_file tmp/paths.pkl
-```
-
-The performance can be evaluated against QisKit's compilation algorithms
-```
-python scripts/qiskit_compile.py --goals_file tmp/goals.pkl
 ```
