@@ -31,19 +31,22 @@ python scripts/train.py \
     --max_itrs 100000
 ```
 
-## Heuristic search
+## Random matrix generation
 
-In perform heuristic search using a model, first generate random goal states
+To generate 1000 random 1-qubit unitary operators run
 ```
 python scripts/generate_goals.py \
-    --num_qubits 2 \
+    --num_qubits 1 \
     --num_goals 1000 \
     --pkl_file tmp/goals.pkl
 ```
 
-Then run A* search to find paths to the goal states
+## Heuristic search
+
+To run A* heuristic search using a trained model run
 ```
 python scripts/search.py \
+    --epsilon 0.03 \
     --nnet_dir tmp/model \
     --goals_file tmp/goals.pkl \
     --save_file tmp/paths.pkl
