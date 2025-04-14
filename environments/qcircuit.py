@@ -1,15 +1,15 @@
 import numpy as np
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Self, Tuple, List, Dict
 from deepxube.environments.environment_abstract import Environment, State, Action, Goal, HeurFnNNet
-from utils.matrix_utils import *
 from nnet.pytorch_models import QNNet
 from nnet.nnet_utils import load_nnet_config
+from utils.matrix_utils import *
 
 
 class QState(State):
     # tolerance for comparing unitaries between states
-    epsilon: float = 0.0001
+    epsilon: float = 1e-6
 
     def __init__(self, unitary: np.ndarray[np.complex128]):
         self.unitary = unitary
@@ -23,7 +23,7 @@ class QState(State):
 
 class QGoal(Goal):
     # tolerance for comparing unitaries between goals
-    epsilon: float = 0.0001
+    epsilon: float = 1e-6
 
     def __init__(self, unitary: np.ndarray[np.complex128]):
         self.unitary = unitary
@@ -145,7 +145,7 @@ class QCircuit(Environment):
 
     def get_start_states(self, num_states: int) -> List[QState]:
         """
-        Generates a set of states with random unitary operators initialized
+        Generates a set of states with the identity as their unitary
 
         @param num_states: Number of states to generate
         @returns: Generated states
