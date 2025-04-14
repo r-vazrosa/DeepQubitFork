@@ -28,7 +28,7 @@ if __name__ == '__main__':
     # environment setup
     nnet_config: Dict = None
     if args.nnet_config:
-        load_nnet_config(args.nnet_config)
+        nnet_config = load_nnet_config(args.nnet_config)
     
     env = QCircuit(
         num_qubits=args.num_qubits,
