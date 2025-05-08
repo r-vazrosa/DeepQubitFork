@@ -168,7 +168,7 @@ class QCircuit(Environment):
             next_state = action.apply_to(state)
             next_states.append(next_state)
 
-        transition_costs = [x.cost for x in actions]
+        transition_costs = [100*x.cost for x in actions]
         return next_states, transition_costs
 
     def sample_goal(self, states_start: List[QState], states_goal: List[QState]) -> List[QGoal]:
