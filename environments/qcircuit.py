@@ -38,6 +38,7 @@ class QGoal(Goal):
 class QAction(Action, ABC):
     unitary: np.ndarray[np.complex128]
     full_gate_unitary: np.ndarray[np.complex128]
+    cost: float
     
     def apply_to(self, state: QState) -> QState:
         new_state_unitary = np.matmul(self.full_gate_unitary, state.unitary).astype(np.complex128)
@@ -91,21 +92,27 @@ class ControlledGate(QAction, ABC):
 
 class HGate(OneQubitGate):
     unitary = np.array([[1, 1], [1, -1]], dtype=np.complex128) / np.sqrt(2)
+    cost = 0.01
 
 class SGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, 1j]], dtype=np.complex128)
+    cost = 0.01
 
 class SdgGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, -1j]], dtype=np.complex128)
+    cost = 0.01
     
 class TGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, np.exp(1j*np.pi/4)]], dtype=np.complex128)
+    cost = 1.0
 
 class TdgGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, np.exp(-1j*np.pi/4)]], dtype=np.complex128)
+    cost = 1.0
 
 class CNOTGate(ControlledGate):
     unitary = np.array([[0, 1], [1, 0]], dtype=np.complex128)
+    cost = 0.1
 
 
 class QCircuit(Environment):
@@ -161,7 +168,7 @@ class QCircuit(Environment):
             next_state = action.apply_to(state)
             next_states.append(next_state)
 
-        transition_costs = [1.0] * len(states)
+        transition_costs = [x.cost for x in actions]
         return next_states, transition_costs
 
     def sample_goal(self, states_start: List[QState], states_goal: List[QState]) -> List[QGoal]:
