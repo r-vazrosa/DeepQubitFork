@@ -168,7 +168,7 @@ class QCircuit(Environment):
             next_state = action.apply_to(state)
             next_states.append(next_state)
 
-        transition_costs = [100*x.cost for x in actions]
+        transition_costs = [x.cost for x in actions]
         return next_states, transition_costs
 
     def sample_goal(self, states_start: List[QState], states_goal: List[QState]) -> List[QGoal]:
@@ -188,7 +188,7 @@ class QCircuit(Environment):
         @param goals: List of goals to check against
         @returns: List of bools representing solved/not-solved
         """
-        return [unitary_distance(state.unitary, goal.unitary) <= np.sqrt(2) * self.epsilon \
+        return [unitary_distance(state.unitary, goal.unitary) <= self.epsilon \
                 for (state, goal) in zip(states, goals)]
 
     def states_goals_to_nnet_input(self, states: List[QState], goals: List[QGoal]) -> List[np.ndarray[float]]:
