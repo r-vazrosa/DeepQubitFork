@@ -5,6 +5,7 @@ unitary matrix from an arbitrary gate set
 import os
 import pickle
 from argparse import ArgumentParser
+import numpy as np
 from typing import Dict, List, Optional
 from deepxube.search.astar import AStar, get_path
 from deepxube.nnet import nnet_utils
@@ -17,7 +18,8 @@ if __name__ == '__main__':
     # parsing command line arguments
     parser = ArgumentParser()
     parser.add_argument('--nnet_dir', type=str, required=True)
-    parser.add_argument('--goals_file', type=str, required=True)
+    parser.add_argument('--goal_file', type=str, required=True)
+    parser.add_argument('--goal_format', type=str, default='pkl')
     parser.add_argument('--save_file', type=str, required=True)
     parser.add_argument('--max_steps', type=int, default=100)
     parser.add_argument('--batch_size', type=int, default=1000)
@@ -26,9 +28,29 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # loading goal data
-    data: Dict
-    with open(args.goals_file, 'rb') as f:
-        data = pickle.load(f)
+    data: Dict = dict()
+    if args.goal_format == 'pkl':
+        with open(args.goal_file, 'rb') as f:
+            data = pickle.load(f)
+    
+    elif args.goal_format == 'txt':
+        with open(args.goal_file, 'r') as f:
+            lines = [x.strip() for x in list(f)]
+            data['num_qubits'] = int(lines[1])
+            N = 2**(data['num_qubits'])
+            matrix = np.zeros((N, N), dtype=np.complex128)
+            for i in range(N):
+                row = lines[2+i]
+                cols = row.split(' ')
+                for j, col in enumerate(cols):
+                    left, right = col.split(',')
+                    real = float(left[1:])
+                    imag = float(right[:-1])
+                    matrix[i][j] = real + imag*1j
+                    data['unitaries'] = [matrix]
+
+    else:
+        raise Exception('Invalid goal file format `%s`' % args.goal_format)
 
     # environment setup
     nnet_config: Dict = load_nnet_config(os.path.join(args.nnet_dir, 'nnet_config.yaml'))
