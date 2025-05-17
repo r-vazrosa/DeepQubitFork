@@ -6,7 +6,7 @@ from deepxube.environments.environment_abstract import HeurFnNNet
 from deepxube.nnet.pytorch_models import ResnetModel, FullyConnectedModel
 
 
-class ResnetModel(nn.Module):
+class ResnetModel(HeurFnNNet):
     def __init__(self, state_dim: int, one_hot_depth: int, h1_dim: int, resnet_dim: int, num_resnet_blocks: int,
                  out_dim: int, batch_norm: bool):
         super(ResnetModel, self).__init__(nnet_type='V')
