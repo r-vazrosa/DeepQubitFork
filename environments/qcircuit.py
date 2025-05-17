@@ -2,7 +2,7 @@ import numpy as np
 from abc import ABC
 from typing import Self, Tuple, List, Dict
 from deepxube.environments.environment_abstract import Environment, State, Action, Goal, HeurFnNNet
-from nnet.pytorch_models import QNNet
+from nnet.pytorch_models import ResnetModel
 from nnet.nnet_utils import load_nnet_config
 from utils.matrix_utils import *
 
@@ -92,27 +92,27 @@ class ControlledGate(QAction, ABC):
 
 class HGate(OneQubitGate):
     unitary = np.array([[1, 1], [1, -1]], dtype=np.complex128) / np.sqrt(2)
-    cost = 1.0
+    cost = 0.01
 
 class SGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, 1j]], dtype=np.complex128)
-    cost = 1.0
+    cost = 0.01
 
 class SdgGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, -1j]], dtype=np.complex128)
-    cost = 1.0
+    cost = 0.01
     
 class TGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, np.exp(1j*np.pi/4)]], dtype=np.complex128)
-    cost = 10.0
+    cost = 1.0
 
 class TdgGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, np.exp(-1j*np.pi/4)]], dtype=np.complex128)
-    cost = 10.0
+    cost = 1.0
 
 class CNOTGate(ControlledGate):
     unitary = np.array([[0, 1], [1, 0]], dtype=np.complex128)
-    cost = 5.0
+    cost = 0.1
 
 
 class QCircuit(Environment):
@@ -209,7 +209,8 @@ class QCircuit(Environment):
 
     def get_v_nnet(self) -> HeurFnNNet:
         input_size: int = 2**(2*self.num_qubits + 1)
-        return QNNet(input_size=input_size, **self.nnet_config)
+        nnet = ResnetModel(input_size, 0, 5000, 1000, 4, 1, True)
+        return nnet
 
     # ------------------- NOT IMPLEMENTED -------------------
 
