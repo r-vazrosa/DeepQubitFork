@@ -1,4 +1,0 @@
-resnet_dim: 200
-num_resnet_blocks: 2
-fc_input_dim: 80
-fc_layer_dims: [40, 1]

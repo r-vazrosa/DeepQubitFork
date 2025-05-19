@@ -2,8 +2,7 @@ import numpy as np
 from abc import ABC
 from typing import Self, Tuple, List, Dict
 from deepxube.environments.environment_abstract import Environment, State, Action, Goal, HeurFnNNet
-from nnet.pytorch_models import ResnetModel
-from nnet.nnet_utils import load_nnet_config
+from utils.pytorch_models import ResnetModel
 from utils.matrix_utils import *
 
 
@@ -118,17 +117,12 @@ class CNOTGate(ControlledGate):
 class QCircuit(Environment):
     gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, CNOTGate]
 
-    def __init__(self, num_qubits: int, epsilon: float = 0.01, nnet_config: Dict = None):
+    def __init__(self, num_qubits: int, epsilon: float = 0.01):
         super(QCircuit, self).__init__(env_name='qcircuit')
         
         self.num_qubits: int = num_qubits
         self.epsilon: float = epsilon
         self._generate_actions()
-
-        if nnet_config:
-            self.nnet_config = nnet_config
-        else:
-            self.nnet_config = load_nnet_config('./nnet/config/qnnet_default.yaml')
 
     def _generate_actions(self):
         """

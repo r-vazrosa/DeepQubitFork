@@ -11,7 +11,6 @@ from deepxube.search.astar import AStar, get_path
 from deepxube.nnet import nnet_utils
 from environments.qcircuit import QCircuit, QGoal, QState, QAction
 from utils.matrix_utils import *
-from nnet.nnet_utils import load_nnet_config
 
 
 if __name__ == '__main__':
@@ -53,8 +52,7 @@ if __name__ == '__main__':
         raise Exception('Invalid goal file format `%s`' % args.goal_format)
 
     # environment setup
-    nnet_config: Dict = load_nnet_config(os.path.join(args.nnet_dir, 'nnet_config.yaml'))
-    env: QCircuit = QCircuit(num_qubits=data['num_qubits'], epsilon=args.epsilon, nnet_config=nnet_config)
+    env: QCircuit = QCircuit(num_qubits=data['num_qubits'], epsilon=args.epsilon)
     goals: List[QGoal] = [QGoal(x) for x in data['unitaries']]
     start_states: List[QState] = [QState(tensor_product([I] * data['num_qubits'])) for _ in goals]
     weights: List[float] = [args.path_weight] * len(start_states)
