@@ -79,10 +79,10 @@ if __name__ == '__main__':
 
         # converting circuit to OpenQASM 2.0
         with open(args.output, 'w') as f:
-            f.write('OPENQASM 2.0;\n')
-            f.write('include "qelib1.inc";\n')
             f.write('// Gate-count: %d, T-count: %d, time: %.3fs\n' % \
                     (gate_count, t_count, search_time))
+            f.write('OPENQASM 2.0;\n')
+            f.write('include "qelib1.inc";\n')
             f.write('qreg qubits[%d];\n' % num_qubits)
             for x in path_actions:
                 f.write('%s ' % x.asm_name)
