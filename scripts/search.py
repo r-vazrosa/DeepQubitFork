@@ -8,7 +8,7 @@ import numpy as np
 from typing import List
 from deepxube.search.astar import AStar, get_path
 from deepxube.nnet import nnet_utils
-from environments.qcircuit import QCircuit, QGoal, QState, OneQubitGate, ControlledGate
+from environments.qcircuit import *
 from utils.matrix_utils import *
 
 
@@ -78,6 +78,15 @@ if __name__ == '__main__':
                 elif isinstance(x, ControlledGate):
                     f.write('qubits[%d], qubits[%d]' % (x.control, x.target))
                 f.write(';\n')
+        
+        # printing out gate count and T-count
+        gate_count: int = len(path_actions)
+        t_count: int = 0
+        for x in path_actions:
+            if isinstance(x, TGate) or isinstance(x, TdgGate):
+                t_count += 1
+        
+        print('Found circuit with gate count: %d and T count: %d' % (gate_count, t_count))
 
     else:
-        print('Could not synthesize circuit in %d steps' % args.max_steps)
+        print('Could not find circuit in %d steps' % args.max_steps)
