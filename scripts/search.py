@@ -52,7 +52,8 @@ if __name__ == '__main__':
     # loading heuristic function
     device, devices, on_gpu = nnet_utils.get_device()
     nnet_weights_file: str = os.path.join(args.nnet_dir, 'target.pt')
-    heuristic_fn = nnet_utils.load_heuristic_fn(nnet_weights_file, device, on_gpu, env.get_v_nnet(), env)
+    heuristic_fn = nnet_utils.load_heuristic_fn(nnet_weights_file, device, \
+                                                on_gpu, env.get_v_nnet(), env)
 
     # setup A* search
     astar = AStar(env)
@@ -80,7 +81,8 @@ if __name__ == '__main__':
         with open(args.output, 'w') as f:
             f.write('OPENQASM 2.0;\n')
             f.write('include "qelib1.inc";\n')
-            f.write('// Gate-count: %d, T-count: %d\n' % (gate_count, t_count))
+            f.write('// Gate-count: %d, T-count: %d, time: %.2fs\n' % \
+                    (gate_count, t_count, search_time))
             f.write('qreg qubits[%d];\n' % num_qubits)
             for x in path_actions:
                 f.write('%s ' % x.asm_name)
