@@ -81,7 +81,7 @@ if __name__ == '__main__':
         with open(args.output, 'w') as f:
             f.write('OPENQASM 2.0;\n')
             f.write('include "qelib1.inc";\n')
-            f.write('// Gate-count: %d, T-count: %d, time: %.2fs\n' % \
+            f.write('// Gate-count: %d, T-count: %d, time: %.3fs\n' % \
                     (gate_count, t_count, search_time))
             f.write('qreg qubits[%d];\n' % num_qubits)
             for x in path_actions:
@@ -92,7 +92,7 @@ if __name__ == '__main__':
                     f.write('qubits[%d], qubits[%d]' % (x.control, x.target))
                 f.write(';\n')
         
-        print('Found circuit with gate count %d and T count %d in %.2f seconds' % \
+        print('Found circuit with gate count %d and T count %d in %.3f seconds' % \
               (gate_count, t_count, search_time))
 
     else:
