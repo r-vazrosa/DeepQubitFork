@@ -69,10 +69,18 @@ if __name__ == '__main__':
     search_time = time() - start_time
     if astar.instances[0].finished:
         _, path_actions, _ = get_path(astar.instances[0].goal_node)
+        # getting gate count and T-count
+        gate_count: int = len(path_actions)
+        t_count: int = 0
+        for x in path_actions:
+            if isinstance(x, TGate) or isinstance(x, TdgGate):
+                t_count += 1
+
         # converting circuit to OpenQASM 2.0
         with open(args.output, 'w') as f:
             f.write('OPENQASM 2.0;\n')
             f.write('include "qelib1.inc";\n')
+            f.write('// Gate-count: %d, T-count: %d\n' % (gate_count, t_count))
             f.write('qreg qubits[%d];\n' % num_qubits)
             for x in path_actions:
                 f.write('%s ' % x.asm_name)
@@ -81,13 +89,6 @@ if __name__ == '__main__':
                 elif isinstance(x, ControlledGate):
                     f.write('qubits[%d], qubits[%d]' % (x.control, x.target))
                 f.write(';\n')
-        
-        # printing out gate count and T-count
-        gate_count: int = len(path_actions)
-        t_count: int = 0
-        for x in path_actions:
-            if isinstance(x, TGate) or isinstance(x, TdgGate):
-                t_count += 1
         
         print('Found circuit with gate count %d and T count %d in %.2f seconds' % \
               (gate_count, t_count, search_time))
