@@ -16,14 +16,14 @@ from utils.matrix_utils import *
 if __name__ == '__main__':
     # parsing command line arguments
     parser = ArgumentParser()
-    parser.add_argument('--nnet_dir', type=str, required=True)
-    parser.add_argument('--input', type=str, required=True)
-    parser.add_argument('--output', type=str, required=True)
-    parser.add_argument('--max_steps', type=int, default=1e4)
-    parser.add_argument('--batch_size', type=int, default=1000)
-    parser.add_argument('--epsilon', type=float, default=1e-2)
-    parser.add_argument('--path_weight', type=float, default=0.2)
-    parser.add_argument('--verbose', default=False, action='store_true')
+    parser.add_argument('input', type=str)
+    parser.add_argument('-n', '--nnet_dir', type=str, required=True)
+    parser.add_argument('-o', '--output', type=str, required=True)
+    parser.add_argument('-m', '--max_steps', type=int, default=1e4)
+    parser.add_argument('-b', '--batch_size', type=int, default=1000)
+    parser.add_argument('-e', '--epsilon', type=float, default=1e-2)
+    parser.add_argument('-l', '--path_weight', type=float, default=0.2)
+    parser.add_argument('-v', '--verbose', default=False, action='store_true')
     args = parser.parse_args()
 
     # loading goal data
