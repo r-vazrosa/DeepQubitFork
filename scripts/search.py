@@ -3,13 +3,12 @@ Script that uses A* search to synthesize a
 unitary matrix from an arbitrary gate set
 """
 import os
-import pickle
 from argparse import ArgumentParser
 import numpy as np
-from typing import Dict, List, Optional
+from typing import List
 from deepxube.search.astar import AStar, get_path
 from deepxube.nnet import nnet_utils
-from environments.qcircuit import QCircuit, QGoal, QState, QAction
+from environments.qcircuit import QCircuit, QGoal, QState, OneQubitGate, ControlledGate
 from utils.matrix_utils import *
 
 
@@ -17,45 +16,37 @@ if __name__ == '__main__':
     # parsing command line arguments
     parser = ArgumentParser()
     parser.add_argument('--nnet_dir', type=str, required=True)
-    parser.add_argument('--goal_file', type=str, required=True)
-    parser.add_argument('--goal_format', type=str, default='pkl')
-    parser.add_argument('--save_file', type=str, required=True)
-    parser.add_argument('--max_steps', type=int, default=100)
+    parser.add_argument('--input', type=str, required=True)
+    parser.add_argument('--output', type=str, required=True)
+    parser.add_argument('--max_steps', type=int, default=1e4)
     parser.add_argument('--batch_size', type=int, default=1000)
     parser.add_argument('--epsilon', type=float, default=1e-2)
     parser.add_argument('--path_weight', type=float, default=0.2)
+    parser.add_argument('--verbose', default=False, action='store_true')
     args = parser.parse_args()
 
     # loading goal data
-    data: Dict = dict()
-    if args.goal_format == 'pkl':
-        with open(args.goal_file, 'rb') as f:
-            data = pickle.load(f)
-    
-    elif args.goal_format == 'txt':
-        with open(args.goal_file, 'r') as f:
-            lines = [x.strip() for x in list(f)]
-            data['num_qubits'] = int(lines[1])
-            N = 2**(data['num_qubits'])
-            matrix = np.zeros((N, N), dtype=np.complex128)
-            for i in range(N):
-                row = lines[2+i]
-                cols = row.split(' ')
-                for j, col in enumerate(cols):
-                    left, right = col.split(',')
-                    real = float(left[1:])
-                    imag = float(right[:-1])
-                    matrix[i][j] = real + imag*1j
-                    data['unitaries'] = [matrix]
-
-    else:
-        raise Exception('Invalid goal file format `%s`' % args.goal_format)
+    num_qubits: int
+    goal_matrix: np.ndarray[np.complex128]
+    with open(args.input, 'r') as f:
+        lines = [x.strip() for x in list(f)]
+        num_qubits = int(lines[1])
+        N = 2**(num_qubits)
+        goal_matrix = np.zeros((N, N), dtype=np.complex128)
+        for i in range(N):
+            row = lines[2+i]
+            cols = row.split(' ')
+            for j, col in enumerate(cols):
+                left, right = col.split(',')
+                real = float(left[1:])
+                imag = float(right[:-1])
+                goal_matrix[i][j] = real + imag*1j
 
     # environment setup
-    env: QCircuit = QCircuit(num_qubits=data['num_qubits'], epsilon=args.epsilon)
-    goals: List[QGoal] = [QGoal(x) for x in data['unitaries']]
-    start_states: List[QState] = [QState(tensor_product([I] * data['num_qubits'])) for _ in goals]
-    weights: List[float] = [args.path_weight] * len(start_states)
+    env: QCircuit = QCircuit(num_qubits=num_qubits, epsilon=args.epsilon)
+    goal_states: List[QGoal] = [QGoal(goal_matrix)]
+    start_states: List[QState] = [QState(tensor_product([I] * num_qubits))]
+    weights: List[float] = [args.path_weight]
 
     # loading heuristic function
     device, devices, on_gpu = nnet_utils.get_device()
@@ -64,34 +55,29 @@ if __name__ == '__main__':
 
     # setup A* search
     astar = AStar(env)
-    astar.add_instances(start_states, goals, weights, heuristic_fn)
+    astar.add_instances(start_states, goal_states, weights, heuristic_fn)
 
     # running search
     step: int = 0
     while np.any([not x.finished for x in astar.instances]) and step < args.max_steps:
-        astar.step(heuristic_fn, args.batch_size, verbose=True)
-        print('Solved: %d/%d\n' % (sum([int(x.finished) for x in astar.instances]), len(goals)))
+        astar.step(heuristic_fn, args.batch_size, verbose=args.verbose)
         step += 1
     
-    # getting paths
-    paths: List[List[Optional[QAction]]] = []
-    path_lens: List[int] = []
-    for x in astar.instances:
-        if x.finished:
-            _, path_actions, _ = get_path(x.goal_node)
-            paths.append(path_actions)
-            path_lens.append(len(path_actions))
-        else:
-            paths.append(None)
+    # getting path
+    if astar.instances[0].finished:
+        _, path_actions, _ = get_path(astar.instances[0].goal_node)
+        # converting circuit to OpenQASM 2.0
+        with open(args.output, 'w') as f:
+            f.write('OPENQASM 2.0;\n')
+            f.write('include "qelib1.inc";\n')
+            f.write('qreg qubits[%d];\n' % num_qubits)
+            for x in path_actions:
+                f.write('%s ' % x.asm_name)
+                if isinstance(x, OneQubitGate):
+                    f.write('qubits[%d]' % x.qubit)
+                elif isinstance(x, ControlledGate):
+                    f.write('qubits[%d], qubits[%d]' % (x.control, x.target))
+                f.write(';\n')
 
-    if len(path_lens) == 0:
-        print('Could not find any paths')
-    
     else:
-        # saving paths
-        print('Found %d/%d unitaries' % (len(path_lens), len(goals)))
-        print('Saving paths to `%s` | min/max/mean: %.2f/%.2f/%.2f' % (args.save_file, \
-            min(path_lens), max(path_lens), sum(path_lens) / len(path_lens)))
-        
-        with open(args.save_file, 'wb') as f:
-            pickle.dump({'goals': goals, 'paths': paths}, f)
+        print('Could not synthesize circuit in %d steps' % args.max_steps)

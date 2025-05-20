@@ -92,26 +92,32 @@ class ControlledGate(QAction, ABC):
 class HGate(OneQubitGate):
     unitary = np.array([[1, 1], [1, -1]], dtype=np.complex128) / np.sqrt(2)
     cost = 1.0
+    asm_name = 'h'
 
 class SGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, 1j]], dtype=np.complex128)
     cost = 1.0
+    asm_name = 's'
 
 class SdgGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, -1j]], dtype=np.complex128)
     cost = 1.0
+    asm_name = 'sdg'
     
 class TGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, np.exp(1j*np.pi/4)]], dtype=np.complex128)
     cost = 10.0
+    asm_name = 't'
 
 class TdgGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, np.exp(-1j*np.pi/4)]], dtype=np.complex128)
     cost = 10.0
+    asm_name = 'tdg'
 
 class CNOTGate(ControlledGate):
     unitary = np.array([[0, 1], [1, 0]], dtype=np.complex128)
     cost = 5.0
+    asm_name = 'cx'
 
 
 class QCircuit(Environment):
