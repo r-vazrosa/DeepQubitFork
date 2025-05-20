@@ -3,6 +3,7 @@ Script that uses A* search to synthesize a
 unitary matrix from an arbitrary gate set
 """
 import os
+from time import time
 from argparse import ArgumentParser
 import numpy as np
 from typing import List
@@ -56,6 +57,7 @@ if __name__ == '__main__':
     # setup A* search
     astar = AStar(env)
     astar.add_instances(start_states, goal_states, weights, heuristic_fn)
+    start_time = time()
 
     # running search
     step: int = 0
@@ -64,6 +66,7 @@ if __name__ == '__main__':
         step += 1
     
     # getting path
+    search_time = time() - start_time
     if astar.instances[0].finished:
         _, path_actions, _ = get_path(astar.instances[0].goal_node)
         # converting circuit to OpenQASM 2.0
@@ -86,7 +89,8 @@ if __name__ == '__main__':
             if isinstance(x, TGate) or isinstance(x, TdgGate):
                 t_count += 1
         
-        print('Found circuit with gate count: %d and T count: %d' % (gate_count, t_count))
+        print('Found circuit with gate count %d and T count %d in %.2f seconds' % \
+              (gate_count, t_count, search_time))
 
     else:
         print('Could not find circuit in %d steps' % args.max_steps)
