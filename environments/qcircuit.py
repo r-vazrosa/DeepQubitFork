@@ -91,17 +91,17 @@ class ControlledGate(QAction, ABC):
 
 class HGate(OneQubitGate):
     unitary = np.array([[1, 1], [1, -1]], dtype=np.complex128) / np.sqrt(2)
-    cost = 1.0
+    cost = 0.01
     asm_name = 'h'
 
 class SGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, 1j]], dtype=np.complex128)
-    cost = 1.0
+    cost = 0.01
     asm_name = 's'
 
 class SdgGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, -1j]], dtype=np.complex128)
-    cost = 1.0
+    cost = 0.01
     asm_name = 'sdg'
     
 class TGate(OneQubitGate):
@@ -116,7 +116,7 @@ class TdgGate(OneQubitGate):
 
 class CNOTGate(ControlledGate):
     unitary = np.array([[0, 1], [1, 0]], dtype=np.complex128)
-    cost = 1.0
+    cost = 0.1
     asm_name = 'cx'
 
 
