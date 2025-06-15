@@ -91,17 +91,17 @@ class ControlledGate(QAction, ABC):
 
 class HGate(OneQubitGate):
     unitary = np.array([[1, 1], [1, -1]], dtype=np.complex128) / np.sqrt(2)
-    cost = 0.01
+    cost = 1.0
     asm_name = 'h'
 
 class SGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, 1j]], dtype=np.complex128)
-    cost = 0.01
+    cost = 1.0
     asm_name = 's'
 
 class SdgGate(OneQubitGate):
     unitary = np.array([[1, 0], [0, -1j]], dtype=np.complex128)
-    cost = 0.01
+    cost = 1.0
     asm_name = 'sdg'
     
 class TGate(OneQubitGate):
@@ -116,7 +116,7 @@ class TdgGate(OneQubitGate):
 
 class CNOTGate(ControlledGate):
     unitary = np.array([[0, 1], [1, 0]], dtype=np.complex128)
-    cost = 0.1
+    cost = 1.0
     asm_name = 'cx'
 
 
@@ -188,7 +188,7 @@ class QCircuit(Environment):
         @param goals: List of goals to check against
         @returns: List of bools representing solved/not-solved
         """
-        return [unitary_distance(state.unitary, goal.unitary) <= self.epsilon \
+        return [unitary_distance(state.unitary, goal.unitary) <= np.sqrt(2) * self.epsilon \
                 for (state, goal) in zip(states, goals)]
 
     def states_goals_to_nnet_input(self, states: List[QState], goals: List[QGoal]) -> List[np.ndarray[float]]:
