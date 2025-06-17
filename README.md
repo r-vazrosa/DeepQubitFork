@@ -51,13 +51,14 @@ The full list of command line options for `scripts/train.py` are listed below:
 
 To run A* heuristic search using a trained model run the search script; for example
 ```
-python scripts/search.py target.txt --output circuit.qasm --epsilon 0.01
+python scripts/search.py target.txt --output circuit.qasm --epsilon 0.01 --nnet_dir model
 ```
 
 The full list of command line options for `scripts/search.py` are listed below:
 
 | Option | Usage |
 | -- | -- |
+| --nnet_dir / -n | Directory of saved neural network model |
 | --output / -o | Filename for saving circuit output |
 | --epsilon / -e | Tolerance for solution acceptance |
 | --max_steps / -m | Maximum steps allowed for A* search |
