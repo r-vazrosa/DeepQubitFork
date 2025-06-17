@@ -23,31 +23,44 @@ Use the train script, for example:
 
 ```
 python scripts/train.py \
+    --epsilon 0.01 \
     --num_qubits 2 \
-    --nnet_dir tmp/model \
+    --nnet_dir tmp/2qubit \
     --step_max 100 \
-    --batch_size 1000 \
+    --batch_size 10000 \
     --itrs_per_update 1000 \
     --max_itrs 100000
 ```
 
-## Random matrix generation
+The full list of command line options for `scripts/train.py` are listed below:
 
-To generate 1000 random 1-qubit unitary operators run
-```
-python scripts/generate_goals.py \
-    --num_qubits 1 \
-    --num_goals 1000 \
-    --pkl_file tmp/goals.pkl
-```
+| Option | Usage |
+| -- | -- |
+| --num_qubits | Number of qubits to train the model for compilation on |
+| --nnet_dir | Directory for storing the trained network weights |
+| --epsilon | Float value of tolerance for accepting solution |
+| --step_max | Number of steps to use for greedy policy test |
+| --batch_size | Training update batch size |
+| --itrs_per_update | Number of iterations per value iteration update |
+| --max_itrs | Maxmimum training iterations |
+| --greedy_update_step_max | How many steps to take during data generation in value iteration updates |
+| --num_update_procs | Number of processes to run for updating in parallel |
+
 
 ## Heuristic search
 
-To run A* heuristic search using a trained model run
+To run A* heuristic search using a trained model run the search script; for example
 ```
-python scripts/search.py \
-    --epsilon 0.03 \
-    --nnet_dir tmp/model \
-    --goals_file tmp/goals.pkl \
-    --save_file tmp/paths.pkl
+python scripts/search.py target.txt --output circuit.qasm --epsilon 0.01
 ```
+
+The full list of command line options for `scripts/search.py` are listed below:
+
+| Option | Usage |
+| -- | -- |
+| --output / -o | Filename for saving circuit output |
+| --epsilon / -e | Tolerance for solution acceptance |
+| --max_steps / -m | Maximum steps allowed for A* search |
+| --batch_size / -o | Batch size for A* search |
+| --path_weight / -p | Path weight for A* search |
+| --verbose / -v | Print all information for each A* update |
