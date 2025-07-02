@@ -209,15 +209,15 @@ class QCircuit(Environment):
 
     def get_v_nnet(self) -> HeurFnNNet:
         input_size: int = 2**(2*self.num_qubits + 1)
-        match self.num_qubits:
-            case 1:
-                return ResnetModel(input_size, 0, 400, 300, 2, 1, True)
-            case 2:
-                return ResnetModel(input_size, 0, 600, 400, 2, 1, True)
-            case 3:
-                return ResnetModel(input_size, 0, 800, 400, 3, 1, True)
-            case 4:
-                return ResnetModel(input_size, 0, 800, 400, 3, 1, True)
+        match self.num_qubits, self.epsilon:
+            case 1, 1e-2:
+                return ResnetModel(input_size, 0, 1000, 800, 3, 1, True)
+            case 2, 1e-2:
+                return ResnetModel(input_size, 0, 1000, 800, 3, 1, True)
+            case 3, 1e-6:
+                return ResnetModel(input_size, 0, 1000, 800, 3, 1, True)
+            case 4, 1e-6:
+                return ResnetModel(input_size, 0, 1200, 1000, 3, 1, True)
             case _:
                 raise Exception('Environment not configured for >4 qubits')
 
