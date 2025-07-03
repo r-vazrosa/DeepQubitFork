@@ -210,9 +210,9 @@ class QCircuit(Environment):
     def get_v_nnet(self) -> HeurFnNNet:
         input_size: int = 2**(2*self.num_qubits + 1)
         match self.num_qubits, self.epsilon:
-            case 1, 1e-2:
+            case 1, _:
                 return ResnetModel(input_size, 0, 1000, 800, 3, 1, True)
-            case 2, 1e-2:
+            case 2, _:
                 return ResnetModel(input_size, 0, 1000, 800, 3, 1, True)
             case 3, 1e-6:
                 return ResnetModel(input_size, 0, 1000, 800, 3, 1, True)
