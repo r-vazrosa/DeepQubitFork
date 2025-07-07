@@ -188,7 +188,7 @@ class QCircuit(Environment):
         @param goals: List of goals to check against
         @returns: List of bools representing solved/not-solved
         """
-        return [unitary_distance(state.unitary, goal.unitary) <= np.sqrt(2) * self.epsilon \
+        return [unitary_distance(state.unitary, goal.unitary) <= self.epsilon \
                 for (state, goal) in zip(states, goals)]
 
     def states_goals_to_nnet_input(self, states: List[QState], goals: List[QGoal]) -> List[np.ndarray[float]]:
@@ -209,15 +209,13 @@ class QCircuit(Environment):
 
     def get_v_nnet(self) -> HeurFnNNet:
         input_size: int = 2**(2*self.num_qubits + 1)
-        match self.num_qubits:
-            case 1:
-                return ResnetModel(input_size, 0, 600, 400, 2, 1, True)
-            case 2:
-                return ResnetModel(input_size, 0, 1000, 800, 2, 1, True)
-            case 3:
-                return ResnetModel(input_size, 0, 1200, 1000, 2, 1, True)
-            case 4:
-                return ResnetModel(input_size, 0, 800, 400, 3, 1, True)
+        match self.num_qubits, self.epsilon:
+            case 1, 1e-2:
+                return ResnetModel(input_size, 0, 1000, 800, 3, 1, True)
+            case 1, 1e-3:
+                return ResnetModel(input_size, 0, 1200, 1000, 4, 1, True)
+            case 1, 1e-4:
+                return ResnetModel(input_size, 0, 2000, 1000, 4, 1, True)
             case _:
                 raise Exception('Environment not configured for >4 qubits')
 
