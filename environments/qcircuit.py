@@ -114,6 +114,21 @@ class TdgGate(OneQubitGate):
     cost = 1.0
     asm_name = 'tdg'
 
+class XGate(OneQubitGate):
+    unitary = np.array([[0, 1], [1, 0]], dtype=np.complex128)
+    cost = 1.0
+    asm_name = 'x'
+
+class YGate(OneQubitGate):
+    unitary = np.array([[0, -1j], [1j, 0]], dtype=np.complex128)
+    cost = 1.0
+    asm_name = 'y'
+
+class ZGate(OneQubitGate):
+    unitary = np.array([[1, 0], [0, -1]], dtype=np.complex128)
+    cost = 1.0
+    asm_name = 'z'
+
 class CNOTGate(ControlledGate):
     unitary = np.array([[0, 1], [1, 0]], dtype=np.complex128)
     cost = 1.0
@@ -121,7 +136,8 @@ class CNOTGate(ControlledGate):
 
 
 class QCircuit(Environment):
-    gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, CNOTGate]
+    # gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, CNOTGate]
+    gate_set = [HGate, SGate, TGate, XGate, YGate, ZGate]
 
     def __init__(self, num_qubits: int, epsilon: float = 0.01):
         super(QCircuit, self).__init__(env_name='qcircuit')
