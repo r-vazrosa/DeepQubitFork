@@ -229,9 +229,9 @@ class QCircuit(Environment):
             case 1, 1e-2:
                 return ResnetModel(input_size, 0, 2000, 1000, 3, 1, True)
             case 1, 1e-3:
-                return ResnetModel(input_size, 0, 3000, 1000, 4, 1, True)
+                return ResnetModel(input_size, 0, 5000, 1000, 4, 1, True)
             case 1, 1e-4:
-                return ResnetModel(input_size, 0, 4000, 1000, 4, 1, True)
+                return ResnetModel(input_size, 0, 8000, 1000, 4, 1, True)
             case _:
                 raise Exception('Environment not configured for >4 qubits')
 
