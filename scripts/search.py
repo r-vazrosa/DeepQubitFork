@@ -27,21 +27,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # loading goal data
-    num_qubits: int
-    goal_matrix: np.ndarray[np.complex128]
-    with open(args.input, 'r') as f:
-        lines = [x.strip() for x in list(f)]
-        num_qubits = int(lines[1])
-        N = 2**(num_qubits)
-        goal_matrix = np.zeros((N, N), dtype=np.complex128)
-        for i in range(N):
-            row = lines[2+i]
-            cols = row.split(' ')
-            for j, col in enumerate(cols):
-                left, right = col.split(',')
-                real = float(left[1:])
-                imag = float(right[:-1])
-                goal_matrix[i][j] = real + imag*1j
+    goal_matrix = load_matrix_from_file(args.input)
 
     # environment setup
     env: QCircuit = QCircuit(num_qubits=num_qubits, epsilon=args.epsilon)

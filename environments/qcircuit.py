@@ -138,6 +138,7 @@ class CNOTGate(ControlledGate):
 class QCircuit(Environment):
     # gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, CNOTGate]
     gate_set = [HGate, SGate, TGate, XGate, YGate, ZGate]
+    L = 15
 
     def __init__(self, num_qubits: int, epsilon: float = 0.01):
         super(QCircuit, self).__init__(env_name='qcircuit')
@@ -221,10 +222,10 @@ class QCircuit(Environment):
         @returns: List of numpy arrays of flattened state and unitaries (in float format)
         """
         total_unitaries = [np.matmul(y.unitary, invert_unitary(x.unitary)) for (x, y) in zip(states, goals)]
-        return [np.vstack([unitary_to_nnet_input(x) for x in total_unitaries]).astype(float)]
+        return [np.vstack([unitary_to_nnet_input(x, self.L) for x in total_unitaries]).astype(float)]
 
     def get_v_nnet(self) -> HeurFnNNet:
-        input_size: int = 2**(2*self.num_qubits + 1)
+        input_size: int = 2**(2*self.num_qubits + 2) * self.L
         match self.num_qubits, self.epsilon:
             case 1, 1e-2:
                 return ResnetModel(input_size, 0, 2000, 1000, 3, 1, True)
