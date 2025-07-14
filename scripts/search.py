@@ -27,7 +27,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # loading goal data
-    goal_matrix = load_matrix_from_file(args.input)
+    num_qubits, goal_matrix = load_matrix_from_file(args.input)
 
     # environment setup
     env: QCircuit = QCircuit(num_qubits=num_qubits, epsilon=args.epsilon)

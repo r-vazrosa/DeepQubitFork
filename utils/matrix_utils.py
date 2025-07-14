@@ -27,7 +27,7 @@ def load_matrix_from_file(filename: str) -> np.ndarray[np.complex128]:
                 real = float(left[1:])
                 imag = float(right[:-1])
                 unitary[i][j] = real + imag*1j
-    return unitary
+    return num_qubits, unitary
 
 
 def tensor_product(mats: List[np.ndarray[np.complex128]]) -> np.ndarray[np.complex128]:
@@ -96,7 +96,7 @@ def unitary_to_nnet_input(unitary: np.ndarray[np.complex128], L: int) -> np.ndar
 
     # neural radiance field encoding
     # from NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis
-    omegas = 2**(np.arange(L)) * np.pi
+    omegas = 2**(np.arange(L)) * np.pi / 2
     x = np.array([np.real(W), np.imag(W)])
     x1 = np.matmul(x.reshape(-1, 1), omegas.reshape(1, -1))
     gamma_sin = np.sin(x1)

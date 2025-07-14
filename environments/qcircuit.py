@@ -138,7 +138,7 @@ class CNOTGate(ControlledGate):
 class QCircuit(Environment):
     # gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, CNOTGate]
     gate_set = [HGate, SGate, TGate, XGate, YGate, ZGate]
-    L = 15
+    L = 20
 
     def __init__(self, num_qubits: int, epsilon: float = 0.01):
         super(QCircuit, self).__init__(env_name='qcircuit')
