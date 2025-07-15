@@ -138,7 +138,7 @@ class CNOTGate(ControlledGate):
 class QCircuit(Environment):
     # gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, CNOTGate]
     gate_set = [HGate, SGate, TGate, XGate, YGate, ZGate]
-    L = 20
+    L = 25
 
     def __init__(self, num_qubits: int, epsilon: float = 0.01):
         super(QCircuit, self).__init__(env_name='qcircuit')
@@ -225,12 +225,12 @@ class QCircuit(Environment):
         return [np.vstack([unitary_to_nnet_input(x, self.L) for x in total_unitaries]).astype(float)]
 
     def get_v_nnet(self) -> HeurFnNNet:
-        input_size: int = 2**(2*self.num_qubits + 2) * self.L
+        input_size: int = 2**(2*self.num_qubits + 1) * self.L
         match self.num_qubits, self.epsilon:
             case 1, 1e-2:
                 return ResnetModel(input_size, 0, 2000, 1000, 3, 1, True)
             case 1, 1e-3:
-                return ResnetModel(input_size, 0, 5000, 1000, 4, 1, True)
+                return ResnetModel(input_size, 0, 5000, 2000, 4, 1, True)
             case 1, 1e-4:
                 return ResnetModel(input_size, 0, 8000, 1000, 4, 1, True)
             case _:

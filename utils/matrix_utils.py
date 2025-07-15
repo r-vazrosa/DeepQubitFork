@@ -96,13 +96,18 @@ def unitary_to_nnet_input(unitary: np.ndarray[np.complex128], L: int) -> np.ndar
 
     # neural radiance field encoding
     # from NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis
-    omegas = 2**(np.arange(L)) * np.pi / 2
-    x = np.array([np.real(W), np.imag(W)])
-    x1 = np.matmul(x.reshape(-1, 1), omegas.reshape(1, -1))
-    gamma_sin = np.sin(x1)
-    gamma_cos = np.cos(x1)
-    gamma = np.hstack([gamma_sin.flatten(), gamma_cos.flatten()])
-    return gamma
+#    omegas = 2**(np.arange(L)) * np.pi / 2
+#    x = np.array([np.real(W), np.imag(W)])
+#    x1 = np.matmul(x.reshape(-1, 1), omegas.reshape(1, -1))
+#    gamma_sin = np.sin(x1)
+#    gamma_cos = np.cos(x1)
+#    gamma = np.hstack([gamma_sin.flatten(), gamma_cos.flatten()])
+#    return gamma
+    x = 2**(np.arange(L))
+    y = np.array([np.real(unitary), np.imag(unitary)])
+    x1 = np.matmul(x.reshape(-1, 1), y.reshape(1, -1)).flatten()
+    x2 = x1 - np.trunc(x1) * ((x1 > 1.0).astype(int) | (x1 < -1.0).astype(int))
+    return x2
 
 
 def unitary_distance(U: np.ndarray[np.complex128], C: np.ndarray[np.complex128]) -> float:
