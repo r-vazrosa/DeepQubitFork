@@ -95,7 +95,7 @@ def unitary_to_nnet_input(unitary: np.ndarray[np.complex128], L: int) -> np.ndar
         W = np.exp(1j*np.pi) * W
 
     # neural radiance field encoding
-    # from NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis
+    # from NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis (Mildenhall, 2022)
 #    omegas = 2**(np.arange(L)) * np.pi / 2
 #    x = np.array([np.real(W), np.imag(W)])
 #    x1 = np.matmul(x.reshape(-1, 1), omegas.reshape(1, -1))
