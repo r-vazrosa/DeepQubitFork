@@ -57,15 +57,43 @@ def seq_to_matrix(seq: str) -> np.ndarray[np.complex128]:
     return op.data
 
 
-def perturb_unitary(U: np.ndarray[np.complex128], epsilon: float):
-    N = U.shape[0]
-    random_matrix = np.random.rand(N,N) + 1j*np.random.rand(N,N)
-    random_matrix = (random_matrix + random_matrix.conj().T) / 2
-    perturbation = random_matrix / np.linalg.norm(random_matrix) * epsilon
+def gram_schmidt(A):
+    '''input: A set of linearly independent vectors stored
+              as the columns of matrix A
+       outpt: An orthongonal basis for the column space of A.
+       (Copied almost entirely from https://www.sfu.ca/~jtmulhol/py4math/linalg/np-gramschmidt/)
+    '''
+    # get the number of vectors.
+    A = np.copy(A) # create a local instance of the array
+    n = A.shape[1]
+    for j in range(n):
+        # For the vector in column j, find the perpendicular
+        # of the projection onto the previous orthogonal vectors.
+        for k in range(j):
+            A[:, j] -= np.dot(A[:, k], A[:, j]) * A[:, k]
+        # If original vectors aren't lin indep then we can check for this:
+        # 
 
-    U_perturbed = U + perturbation
-    W, _, Vh = np.linalg.svd(U_perturbed)
-    U_new = W @ Vh
+        if np.isclose(np.linalg.norm(A[:, j]), 0, rtol=1e-15, atol=1e-14, equal_nan=False):
+            A[:, j] = np.zeros(A.shape[0])
+        else:    
+            A[:, j] = A[:, j] / np.linalg.norm(A[:, j])
+    return A
+
+
+def perturb_unitary(U: np.ndarray[np.complex128], epsilon: float):
+    # N = U.shape[0]
+    # random_matrix = np.random.rand(N,N) + 1j*np.random.rand(N,N)
+    # random_matrix = (random_matrix + random_matrix.conj().T) / 2
+    # perturbation = random_matrix / np.linalg.norm(random_matrix) * epsilon
+
+    # U_perturbed = U + perturbation
+    # W, _, Vh = np.linalg.svd(U_perturbed)
+    # U_new = W @ Vh
+    # return U_new
+    N = U.shape[0]
+    random_matrix = np.random.rand(N,N) * epsilon
+    U_new = gram_schmidt(U + random_matrix)
     return U_new
 
 
