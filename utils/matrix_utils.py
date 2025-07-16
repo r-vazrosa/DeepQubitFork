@@ -165,7 +165,9 @@ def unitary_distance(U: np.ndarray[np.complex128], C: np.ndarray[np.complex128])
     # num = np.linalg.norm(M * U - (tr_cu / np.abs(tr_cu)) * M * C)
     # d_sc = num / np.sqrt(np.linalg.norm(M))
     # return d_sc
-    return np.sqrt(1 - (1/(2**(U.shape[0]))) * np.abs( np.trace( np.matmul(U, np.conj(C).T) ) )**2 )
+    trc = np.trace( np.matmul(U, C.conj().T) )
+    inner = (1/(2**(U.shape[0]))) * np.abs( trc )**2
+    return np.sqrt( np.around( 1.0 - inner , 10 ) )
 
 
 def random_unitary(dim: int) -> np.ndarray[np.complex128]:
