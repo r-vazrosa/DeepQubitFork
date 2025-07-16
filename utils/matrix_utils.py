@@ -1,6 +1,8 @@
 import scipy
 import numpy as np
 from typing import List
+from qiskit import qasm3
+from qiskit.quantum_info import Operator
 
 
 # identity matrix on one qubit
@@ -28,6 +30,31 @@ def load_matrix_from_file(filename: str) -> np.ndarray[np.complex128]:
                 imag = float(right[:-1])
                 unitary[i][j] = real + imag*1j
     return num_qubits, unitary
+
+
+def save_matrix_to_file(matrix: np.ndarray[np.complex128], filename: str):
+    num_qubits = int(np.log2(matrix.shape[0]))
+    with open(filename, 'w') as f:
+        f.write('matrix\n%s' % num_qubits)
+        for row in matrix:
+            row_str = '\n'
+            for x in row:
+                row_str += '(%s,%s) ' % (np.real(x), np.imag(x))
+            f.write(row_str)
+
+
+def seq_to_matrix(seq: str) -> np.ndarray[np.complex128]:
+    qasm_str = '''
+    OPENQASM 3.0;
+    include "stdgates.inc";
+    qubit q;'''
+
+    for x in seq:
+        qasm_str += '\n' + x + ' q;'
+    
+    qc = qasm3.loads(qasm_str)
+    op = Operator.from_circuit(qc)
+    return op.data
 
 
 def tensor_product(mats: List[np.ndarray[np.complex128]]) -> np.ndarray[np.complex128]:

@@ -1,3 +1,4 @@
 torch==2.6.0
 deepxube==0.1.6
 scipy==1.15.2
+qiskit==2.1.1
