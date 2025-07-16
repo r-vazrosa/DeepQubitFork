@@ -1,4 +1,5 @@
 import os
+import numpy as np
 from argparse import ArgumentParser
 
 from environments.qcircuit import QCircuit
@@ -12,6 +13,8 @@ def main():
     parser.add_argument('-k', '--num_targets', type=int, required=True)
     parser.add_argument('-s', '--max_steps', type=int, default=1000)
     parser.add_argument('-p', '--save_path', type=str, required=True)
+    parser.add_argument('--txt', action='store_true')
+    parser.add_argument('--numpy', action='store_true')
     args = parser.parse_args()
 
     # environment setup/generating matrices
@@ -24,11 +27,14 @@ def main():
     # saving unitaries to files
     if not os.path.exists(args.save_path):
         os.mkdir(args.save_path)
-        
-    for i, U in enumerate(unitaries):
-        filename = os.path.join(args.save_path, '%s.txt' % i)
-        save_matrix_to_file(U, filename)
 
+    for i, U in enumerate(unitaries):
+        if args.txt:
+            filename = os.path.join(args.save_path, '%s.txt' % i)
+            save_matrix_to_file(U, filename)
+        if args.numpy:
+            filename = os.path.join(args.save_path, '%s.npy' % i)
+            np.save(filename, U)
 
 if __name__ == '__main__':
     main()
