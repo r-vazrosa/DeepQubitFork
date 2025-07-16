@@ -92,7 +92,7 @@ def perturb_unitary(U: np.ndarray[np.complex128], epsilon: float):
     # U_new = W @ Vh
     # return U_new
     N = U.shape[0]
-    random_matrix = np.random.rand(N,N) * epsilon
+    random_matrix = (np.random.rand(N,N) + np.random.rand(N,N)*1j) * epsilon / 2
     U_new = gram_schmidt(U + random_matrix)
     return U_new
 
