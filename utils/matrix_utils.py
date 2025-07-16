@@ -120,12 +120,13 @@ def unitary_distance(U: np.ndarray[np.complex128], C: np.ndarray[np.complex128])
     @returns: Distance as floating point number
     """
     # from paper 'Synthetiq: Fast and Versatile Quantum Circuit Synthesis'
-    M = np.ones(U.shape, dtype=np.complex128)
-    tr_cu = np.trace(np.matmul(invert_unitary(M * C), M * U))
-    if tr_cu == 0.: tr_cu = 1.
-    num = np.linalg.norm(M * U - (tr_cu / np.abs(tr_cu)) * M * C)
-    d_sc = num / np.sqrt(np.linalg.norm(M))
-    return d_sc
+    # M = np.ones(U.shape, dtype=np.complex128)
+    # tr_cu = np.trace(np.matmul(invert_unitary(M * C), M * U))
+    # if tr_cu == 0.: tr_cu = 1.
+    # num = np.linalg.norm(M * U - (tr_cu / np.abs(tr_cu)) * M * C)
+    # d_sc = num / np.sqrt(np.linalg.norm(M))
+    # return d_sc
+    return np.sqrt(1 - (1/(2**(U.shape[0]))) * np.abs( np.trace( np.matmul(U, np.conj(C).T) ) )**2 )
 
 
 def random_unitary(dim: int) -> np.ndarray[np.complex128]:
