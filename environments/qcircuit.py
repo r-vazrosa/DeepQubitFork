@@ -191,11 +191,8 @@ class QCircuit(Environment):
     def sample_goal(self, states_start: List[QState], states_goal: List[QState]) -> List[QGoal]:
         """
         Creates goal objects from state-goal pairs
-
-        TODO: add 'noise' to goal unitaries to make model
-        more robust to dealing with approximation
         """
-        return [QGoal(x.unitary) for x in states_goal]
+        return [QGoal(perturb_unitary(x.unitary, self.epsilon)) for x in states_goal]
     
     def is_solved(self, states: List[QState], goals: List[QGoal]) -> List[bool]:
         """

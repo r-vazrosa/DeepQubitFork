@@ -57,6 +57,18 @@ def seq_to_matrix(seq: str) -> np.ndarray[np.complex128]:
     return op.data
 
 
+def perturb_unitary(U: np.ndarray[np.complex128], epsilon: float):
+    N = U.shape[0]
+    random_matrix = np.random.rand(N,N) + 1j*np.random.rand(N,N)
+    random_matrix = (random_matrix + random_matrix.conj().T) / 2
+    perturbation = random_matrix / np.linalg.norm(random_matrix) * epsilon
+
+    U_perturbed = U + perturbation
+    W, _, Vh = np.linalg.svd(U_perturbed)
+    U_new = W @ Vh
+    return U_new
+
+
 def tensor_product(mats: List[np.ndarray[np.complex128]]) -> np.ndarray[np.complex128]:
     """
     Computes the tensor product (Kronecker product) of a list of matrices
