@@ -133,7 +133,7 @@ def hash_unitary(unitary: np.ndarray[np.complex128], tolerance: float = 0.001) -
     return hash(tuple(np.round(phase_align(unitary).flatten() / tolerance)))
 
 
-def unitary_to_nnet_input(unitary: np.ndarray[np.complex128], L: int) -> np.ndarray[float]:
+def unitary_to_nnet_input(unitary: np.ndarray[np.complex128]) -> np.ndarray[float]:
     """
     Converts a complex-valued unitary matrix into real-valued
     flat numpy arrays that can be converted to tensors easily
@@ -170,11 +170,12 @@ def unitary_to_nnet_input(unitary: np.ndarray[np.complex128], L: int) -> np.ndar
 #    gamma_cos = np.cos(x1)
 #    gamma = np.hstack([gamma_sin.flatten(), gamma_cos.flatten()])
 #    return gamma
-    x = 2**(np.arange(L))
-    y = np.array([np.real(unitary), np.imag(unitary)])
-    x1 = np.matmul(x.reshape(-1, 1), y.reshape(1, -1)).flatten()
-    x2 = x1 - np.trunc(x1) * ((x1 > 1.0).astype(int) | (x1 < -1.0).astype(int))
-    return x2
+    # x = 2**(np.arange(L))
+    # y = np.array([np.real(unitary), np.imag(unitary)])
+    # x1 = np.matmul(x.reshape(-1, 1), y.reshape(1, -1)).flatten()
+    # x2 = x1 - np.trunc(x1) * ((x1 > 1.0).astype(int) | (x1 < -1.0).astype(int))
+    # return x2
+    return np.array([np.real(W), np.imag(W)])
 
 
 def unitary_distance(U: np.ndarray[np.complex128], C: np.ndarray[np.complex128]) -> float:

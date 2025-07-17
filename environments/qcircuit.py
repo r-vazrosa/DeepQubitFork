@@ -219,17 +219,17 @@ class QCircuit(Environment):
         @returns: List of numpy arrays of flattened state and unitaries (in float format)
         """
         total_unitaries = [np.matmul(y.unitary, invert_unitary(x.unitary)) for (x, y) in zip(states, goals)]
-        return [np.vstack([unitary_to_nnet_input(x, self.L) for x in total_unitaries]).astype(float)]
+        return [np.stack([unitary_to_nnet_input(x) for x in total_unitaries]).astype(float)]
 
     def get_v_nnet(self) -> HeurFnNNet:
-        input_size: int = 2**(2*self.num_qubits + 1) * self.L
+        input_size: int = 2**(2*self.num_qubits + 1)
         match self.num_qubits, self.epsilon:
             case 1, 1e-2:
-                return ResnetModel(input_size, 0, 2000, 1000, 3, 1, True)
+                return ResnetModel(self.L, input_size, 2000, 1000, 3, 1, True)
             case 1, 1e-3:
-                return ResnetModel(input_size, 0, 5000, 2000, 4, 1, True)
+                return ResnetModel(self.L, input_size, 5000, 2000, 4, 1, True)
             case 1, 1e-4:
-                return ResnetModel(input_size, 0, 8000, 1000, 4, 1, True)
+                return ResnetModel(self.L, input_size, 8000, 1000, 4, 1, True)
             case _:
                 raise Exception('Environment not configured for >4 qubits')
 
