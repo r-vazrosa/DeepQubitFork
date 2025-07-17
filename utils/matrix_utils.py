@@ -84,7 +84,7 @@ def perturb_unitary(U: np.ndarray[np.complex128], epsilon: float):
     """Adds a small perturbation to a unitary matrix
        such that it is still within epsilon of the original"""
     N = U.shape[0]
-    random_matrix = (np.random.rand(N,N) + np.random.rand(N,N)*1j) * epsilon / 2
+    random_matrix = ((np.random.rand(N,N)*2-1) + (np.random.rand(N,N)*2-1)*1j) * epsilon / 2
     U_new = gram_schmidt(U + random_matrix)
     return U_new
 
