@@ -58,11 +58,10 @@ def seq_to_matrix(seq: str) -> np.ndarray[np.complex128]:
 
 
 def gram_schmidt(A):
-    '''input: A set of linearly independent vectors stored
+    """input: A set of linearly independent vectors stored
               as the columns of matrix A
        outpt: An orthongonal basis for the column space of A.
-       (Copied almost entirely from https://www.sfu.ca/~jtmulhol/py4math/linalg/np-gramschmidt/)
-    '''
+       (Copied from https://www.sfu.ca/~jtmulhol/py4math/linalg/np-gramschmidt/)"""
     # get the number of vectors.
     A = np.copy(A) # create a local instance of the array
     n = A.shape[1]
@@ -82,15 +81,8 @@ def gram_schmidt(A):
 
 
 def perturb_unitary(U: np.ndarray[np.complex128], epsilon: float):
-    # N = U.shape[0]
-    # random_matrix = np.random.rand(N,N) + 1j*np.random.rand(N,N)
-    # random_matrix = (random_matrix + random_matrix.conj().T) / 2
-    # perturbation = random_matrix / np.linalg.norm(random_matrix) * epsilon
-
-    # U_perturbed = U + perturbation
-    # W, _, Vh = np.linalg.svd(U_perturbed)
-    # U_new = W @ Vh
-    # return U_new
+    """Adds a small perturbation to a unitary matrix
+       such that it is still within epsilon of the original"""
     N = U.shape[0]
     random_matrix = (np.random.rand(N,N) + np.random.rand(N,N)*1j) * epsilon / 2
     U_new = gram_schmidt(U + random_matrix)
@@ -98,122 +90,58 @@ def perturb_unitary(U: np.ndarray[np.complex128], epsilon: float):
 
 
 def tensor_product(mats: List[np.ndarray[np.complex128]]) -> np.ndarray[np.complex128]:
-    """
-    Computes the tensor product (Kronecker product) of a list of matrices
-
-    @param mats: List of numpy complex matrices
-    @returns: Numpy complex matrix result of tensor product
-    """
+    """Computes the tensor product (Kronecker product) of a list of matrices"""
     current = 1
     for mat in mats:
         current = np.kron(current, mat)
     return current
 
 
-def phase_align(unitary: np.ndarray[np.complex128]) -> np.ndarray[np.complex128]:
-    """
-    Aligns the global phase of a unitary so that the top left
-    element has complex phase 0
-
-    @param unitary: n x n unitary matrix to align
-    @returns: n x n re-aligned unitary matrix
-    """
-    phs: float = np.angle(unitary[0][0])
-    return np.exp(-1j * phs) * unitary
-
-
-def hash_unitary(unitary: np.ndarray[np.complex128], tolerance: float = 0.001) -> int:
-    """
-    Creates fixed-length representation of unitary operator
-
-    @param unitary: n x n unitary matrix
-    @param tolerance: Level of discretization for matrix values
-    @returns: Integer uniquely representing matrix up to tolerance
-    """
-    return hash(tuple(np.round(phase_align(unitary).flatten() / tolerance)))
-
-
-def unitary_to_nnet_input(unitary: np.ndarray[np.complex128]) -> np.ndarray[float]:
-    """
-    Converts a complex-valued unitary matrix into real-valued
-    flat numpy arrays that can be converted to tensors easily
-
-    @param unitary: Unitary matrix to convert
-    @returns: Numpy vector of real and imaginary values of matrix
-    """
-    # unitary_aligned = phase_align(unitary)
-    # unitary_flat = unitary_aligned.flatten()
-    # unitary_real = np.real(unitary_flat)
-    # unitary_imag = np.imag(unitary_flat)
-    # unitary_nnet = np.hstack((unitary_real, unitary_imag)).astype(float)
-    # return unitary_nnet
-
-    # global-phase invariant transformation
-    # from Making Neural Networks More Suitable for Approximate Clifford+T Circuit Synthesis (Weiden, 2025)
-    N = unitary.shape[0]
-    mu = (1/(N**2)) * np.sum(unitary ** 2)
+def phase_align(U: np.ndarray[np.complex128]) -> np.ndarray[np.complex128]:
+    """Aligns the global phase of a unitary so that
+       phase_align(U) == phase_align(W) if U=e^(i*theta)W"""
+    N = U.shape[0]
+    mu = (1/(N**2)) * np.sum(U ** 2)
     if mu == 0.0:
         mu = 1.0
     mu_norm = mu / np.abs(mu)
     mu_half = mu_norm * np.exp(-1j*np.angle(mu_norm)/2)
     mu_conj = np.conj(mu_half)
-    W = mu_conj * unitary
+    W = mu_conj * U
     if np.real(W[0][0]) < 0:
         W = np.exp(1j*np.pi) * W
+    return W
 
-    # neural radiance field encoding
-    # from NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis (Mildenhall, 2022)
-#    omegas = 2**(np.arange(L)) * np.pi / 2
-#    x = np.array([np.real(W), np.imag(W)])
-#    x1 = np.matmul(x.reshape(-1, 1), omegas.reshape(1, -1))
-#    gamma_sin = np.sin(x1)
-#    gamma_cos = np.cos(x1)
-#    gamma = np.hstack([gamma_sin.flatten(), gamma_cos.flatten()])
-#    return gamma
-    # x = 2**(np.arange(L))
-    # y = np.array([np.real(unitary), np.imag(unitary)])
-    # x1 = np.matmul(x.reshape(-1, 1), y.reshape(1, -1)).flatten()
-    # x2 = x1 - np.trunc(x1) * ((x1 > 1.0).astype(int) | (x1 < -1.0).astype(int))
-    # return x2
-    return np.array([np.real(W), np.imag(W)])
+
+def hash_unitary(unitary: np.ndarray[np.complex128], tolerance: float = 0.001) -> int:
+    """Creates fixed-length representation of unitary operator"""
+    return hash(tuple(np.round(phase_align(unitary).flatten() / tolerance)))
+
+
+def unitary_to_nnet_input(U: np.ndarray[np.complex128]) -> np.ndarray[float]:
+    """Converts a complex-valued unitary matrix into real-valued
+       flat numpy arrays that can be converted to tensors easily"""
+    W = phase_align(U)
+    W_split = np.array([np.real(W), np.imag(W)])
+    return W_split
 
 
 def unitary_distance(U: np.ndarray[np.complex128], C: np.ndarray[np.complex128]) -> float:
-    """
-    Computes the distance between two matrices using the operator norm
-
-    @param mat1: First unitary
-    @param mat2: Second unitary
-    @param method: Which version of the distance function to use
-    @returns: Distance as floating point number
-    """
-    # from paper 'Synthetiq: Fast and Versatile Quantum Circuit Synthesis'
-    # M = np.ones(U.shape, dtype=np.complex128)
-    # tr_cu = np.trace(np.matmul(invert_unitary(M * C), M * U))
-    # if tr_cu == 0.: tr_cu = 1.
-    # num = np.linalg.norm(M * U - (tr_cu / np.abs(tr_cu)) * M * C)
-    # d_sc = num / np.sqrt(np.linalg.norm(M))
-    # return d_sc
+    """Computes the distance between two unitaries"""
     trc = np.trace( np.matmul(U, C.conj().T) )
     inner = (1/(2**(U.shape[0]))) * np.abs( trc )**2
-    return np.sqrt( np.around( 1.0 - inner , 10 ) )
+    if inner > 1.0:
+        # sometimes small rounding errors can occur and cause this value
+        #  to be > 1, which causes a sqrt of a negative number error
+        inner = 1.0
+    return np.sqrt( 1.0 - inner )
 
 
 def random_unitary(dim: int) -> np.ndarray[np.complex128]:
-    """
-    Generates a randomly distributed set of unitary matrices
-
-    @param dim: Dimension of unitary group to generate
-    @return: Numpy complex array of unitary matrix
-    """
+    """Generates a randomly distributed set of unitary matrices"""
     return scipy.stats.unitary_group.rvs(dim)
 
 
-def invert_unitary(unitary: np.ndarray[np.complex128]) -> np.ndarray[np.complex128]:
-    """
-    Inverts a unitary matrix
-
-    @param unitary: Numpy complex matrix to invert
-    @returns: Inverted numpy complex matrix
-    """
-    return np.conj(unitary.T)
+def invert_unitary(U: np.ndarray[np.complex128]) -> np.ndarray[np.complex128]:
+    """Inverts a unitary matrix"""
+    return U.conj().T
