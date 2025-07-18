@@ -137,7 +137,7 @@ class CNOTGate(ControlledGate):
 
 class QCircuit(Environment):
     # gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, CNOTGate]
-    gate_set = [HGate, SGate, TGate, XGate, YGate, ZGate, CNOTGate]
+#    gate_set = [HGate, SGate, TGate, XGate, YGate, ZGate, CNOTGate]
     L = 15
 
     def __init__(self, num_qubits: int, epsilon: float = 0.01):
@@ -145,6 +145,10 @@ class QCircuit(Environment):
         
         self.num_qubits: int = num_qubits
         self.epsilon: float = epsilon
+        if num_qubits == 1:
+            self.gate_set = [HGate, SGate, TGate, XGate, YGate, ZGate]
+        else:
+            self.gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, CNOTGate]
         self._generate_actions()
 
     def _generate_actions(self):
@@ -192,7 +196,10 @@ class QCircuit(Environment):
         """
         Creates goal objects from state-goal pairs
         """
-        return [QGoal(perturb_unitary(x.unitary, self.epsilon)) for x in states_goal]
+        if self.num_qubits == 1:
+            return [QGoal(perturb_unitary(x.unitary, self.epsilon)) for x in states_goal]
+        else:
+            return [QGoal(x.unitary) for x in states_goal]
     
     def is_solved(self, states: List[QState], goals: List[QGoal]) -> List[bool]:
         """
@@ -230,6 +237,8 @@ class QCircuit(Environment):
                 return ResnetModel(self.L, input_size, 5000, 2000, 4, 1, True)
             case 1, 1e-4:
                 return ResnetModel(self.L, input_size, 8000, 1000, 4, 1, True)
+            case 3, _:
+                return ResnetModel(self.L, input_size, 5000, 1000, 4, 1, True)
             case _:
                 raise Exception('Environment not configured for >4 qubits')
 

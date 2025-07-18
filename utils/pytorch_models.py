@@ -32,7 +32,7 @@ class NeRFEmbedding(nn.Module):
         super().__init__()
         self.L = L
         self._emb_vec = torch.tensor(
-            [torch.pi * 2 ** i for i in range(L)], requires_grad=False
+            [torch.pi * 2 ** i / 2 for i in range(L)], requires_grad=False
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
