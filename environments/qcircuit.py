@@ -137,7 +137,7 @@ class CNOTGate(ControlledGate):
 
 class QCircuit(Environment):
     # gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, CNOTGate]
-    gate_set = [HGate, SGate, TGate, XGate, YGate, ZGate]
+    gate_set = [HGate, SGate, TGate, XGate, YGate, ZGate, CNOTGate]
     L = 15
 
     def __init__(self, num_qubits: int, epsilon: float = 0.01):
