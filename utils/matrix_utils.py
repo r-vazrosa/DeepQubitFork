@@ -14,22 +14,31 @@ P1 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
 
 
 def load_matrix_from_file(filename: str) -> np.ndarray[np.complex128]:
-    num_qubits: int
-    unitary: np.ndarray[np.complex128]
-    with open(filename, 'r') as f:
-        lines = [x.strip() for x in list(f)]
-        num_qubits = int(lines[1])
-        N = 2**(num_qubits)
-        unitary = np.zeros((N, N), dtype=np.complex128)
-        for i in range(N):
-            row = lines[2+i]
-            cols = row.split(' ')
-            for j, col in enumerate(cols):
-                left, right = col.split(',')
-                real = float(left[1:])
-                imag = float(right[:-1])
-                unitary[i][j] = real + imag*1j
-    return num_qubits, unitary
+    if filename.endswith('.txt'):
+        num_qubits: int
+        matrix: np.ndarray[np.complex128]
+        with open(filename, 'r') as f:
+            lines = [x.strip() for x in list(f)]
+            num_qubits = int(lines[1])
+            N = 2**(num_qubits)
+            matrix = np.zeros((N, N), dtype=np.complex128)
+            for i in range(N):
+                row = lines[2+i]
+                cols = row.split(' ')
+                for j, col in enumerate(cols):
+                    left, right = col.split(',')
+                    real = float(left[1:])
+                    imag = float(right[:-1])
+                    matrix[i][j] = real + imag*1j
+        return num_qubits, matrix
+    
+    elif filename.endswith('.npy'):
+        matrix = np.load(filename)
+        num_qubits = int(np.log2(matrix.shape[0]))
+        return num_qubits, matrix
+
+    else:
+        raise Exception('Invalid file format')
 
 
 def save_matrix_to_file(matrix: np.ndarray[np.complex128], filename: str):
