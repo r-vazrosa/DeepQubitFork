@@ -11,18 +11,22 @@ def main():
     parser = ArgumentParser()
     parser.add_argument('-n', '--num_qubits', type=int, required=True)
     parser.add_argument('-k', '--num_targets', type=int, required=True)
-    parser.add_argument('-s', '--max_steps', type=int, default=1000)
     parser.add_argument('-p', '--save_path', type=str, required=True)
+    parser.add_argument('-s', '--max_steps', type=int, default=1000)
+    parser.add_argument('-m', '--method', type=str, default='rvs')
     parser.add_argument('--txt', action='store_true')
     parser.add_argument('--numpy', action='store_true')
     args = parser.parse_args()
 
-    # environment setup/generating matrices
-    env = QCircuit(args.num_qubits)
-    start_states = env.get_start_states(args.num_targets)
-    num_steps = np.random.randint(args.max_steps, size=(args.num_targets,))
-    states_walk = env._random_walk(start_states, num_steps)
-    unitaries = [x.unitary for x in states_walk]
+    if args.method == 'random_walk':
+        # environment setup/generating matrices
+        env = QCircuit(args.num_qubits)
+        start_states = env.get_start_states(args.num_targets)
+        num_steps = np.random.randint(args.max_steps, size=(args.num_targets,))
+        states_walk = env._random_walk(start_states, num_steps)
+        unitaries = [x.unitary for x in states_walk]
+    elif args.method == 'rvs':
+        unitaries = [random_unitary(2**args.num_qubits) for _ in range(args.num_targets)]
 
     # saving unitaries to files
     if not os.path.exists(args.save_path):
