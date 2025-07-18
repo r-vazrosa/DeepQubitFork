@@ -40,10 +40,10 @@ class NeRFEmbedding(nn.Module):
         if self._emb_vec.device != x.device:
             self._emb_vec = self._emb_vec.to(x.device)
         l = self.L
-        x = repeat(x, 'b d -> b d l', l=l)
+        x = repeat(x, 'b d-> b d l', l=l)
         _sin = (x * self._emb_vec).sin()
         _cos = (x * self._emb_vec).cos()
-        interleaved = torch.stack([_sin, _cos], dim=-1).view(b, d, 2 * l)
+        interleaved = torch.stack([_sin, _cos], dim=-1).view(b, d * l * 2)
         return interleaved
 
 
@@ -90,14 +90,7 @@ class ResnetModel(HeurFnNNet):
     def forward(self, states_goals_l):
         # processing input
         x = states_goals_l[0]
-        if x.ndim == 3:
-            x = x.unsqueeze(0)
-        x = rearrange(x, 'n c x y -> n c (x y)')
-        x = dephase(x)
-        x = rearrange(x, 'n c d -> n (c d)')
-        x = self.nerf(x)
-        x = rearrange(x, 'n d l -> n (d l)')
-        x = x.float()
+        x = self.nerf(x).float()
 
         # first two hidden layers
         x = self.fc1(x)

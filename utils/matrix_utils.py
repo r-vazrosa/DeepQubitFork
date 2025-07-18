@@ -130,9 +130,9 @@ def hash_unitary(unitary: np.ndarray[np.complex128], tolerance: float = 0.001) -
 def unitary_to_nnet_input(U: np.ndarray[np.complex128]) -> np.ndarray[float]:
     """Converts a complex-valued unitary matrix into real-valued
        flat numpy arrays that can be converted to tensors easily"""
-    W = phase_align(U)
-    W_split = np.array([np.real(W), np.imag(W)])
-    return W_split
+    # splitting array into magnitude and phase of each complex entry
+    W = np.array([np.abs(U), np.angle(U)/(2*np.pi)]).flatten()
+    return W
 
 
 def unitary_distance(U: np.ndarray[np.complex128], C: np.ndarray[np.complex128]) -> float:
