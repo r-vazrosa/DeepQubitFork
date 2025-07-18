@@ -196,10 +196,11 @@ class QCircuit(Environment):
         """
         Creates goal objects from state-goal pairs
         """
-        if self.num_qubits == 1:
-            return [QGoal(perturb_unitary(x.unitary, self.epsilon)) for x in states_goal]
-        else:
-            return [QGoal(x.unitary) for x in states_goal]
+        # if self.num_qubits == 1:
+        #     return [QGoal(perturb_unitary(x.unitary, self.epsilon)) for x in states_goal]
+        # else:
+        #     return [QGoal(x.unitary) for x in states_goal]
+        return [QGoal(x.unitary) for x in states_goal]
     
     def is_solved(self, states: List[QState], goals: List[QGoal]) -> List[bool]:
         """
@@ -229,7 +230,8 @@ class QCircuit(Environment):
         return [np.stack([unitary_to_nnet_input(x) for x in total_unitaries]).astype(float)]
 
     def get_v_nnet(self) -> HeurFnNNet:
-        input_size: int = 2**(2*self.num_qubits + 1)
+        # input_size: int = 2**(2*self.num_qubits + 1)
+        input_size = 2**(2*self.num_qubits) - 1
         match self.num_qubits, self.epsilon:
             case 1, 1e-2:
                 return ResnetModel(self.L, input_size, 2000, 1000, 3, 1, True)

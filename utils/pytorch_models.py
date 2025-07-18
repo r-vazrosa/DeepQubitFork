@@ -1,29 +1,10 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from einops import rearrange, repeat
+from einops import repeat
 from typing import List
 from deepxube.environments.environment_abstract import HeurFnNNet
-from deepxube.nnet.pytorch_models import ResnetModel, FullyConnectedModel
-    
-    
-def dephase(x: torch.Tensor) -> torch.Tensor:
-    n, c, d = x.shape
-    assert c == 2
-    # Compute mean of each batch element
-    x_r, x_i = x[:, 0], x[:, 1]
-    m_r, m_i = x_r.mean(dim=-1), x_i.mean(dim=-1)
-
-    ang = torch.atan2(m_i, m_r + (m_r == 0) * 1e-6)
-    ang_conj = -ang
-    ang_r, ang_i = torch.cos(ang_conj).unsqueeze(-1), torch.sin(ang_conj).unsqueeze(-1)
-
-    y_r = x_r * ang_r - x_i * ang_i
-    y_i = x_r * ang_i + x_i * ang_r
-
-    y = torch.stack([y_r, y_i], dim=1)
-    assert y.shape == (n, c, d)
-    return y
+from deepxube.nnet.pytorch_models import ResnetModel
 
 
 class NeRFEmbedding(nn.Module):
@@ -32,7 +13,7 @@ class NeRFEmbedding(nn.Module):
         super().__init__()
         self.L = L
         self._emb_vec = torch.tensor(
-            [torch.pi * 2 ** i / 2 for i in range(L)], requires_grad=False
+            [torch.pi * 2 ** i for i in range(L)], requires_grad=False
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -87,7 +68,7 @@ class ResnetModel(HeurFnNNet):
         # output
         self.fc_out = nn.Linear(resnet_dim, out_dim)
 
-    def forward(self, states_goals_l):
+    def forward(self, states_goals_l: List[torch.Tensor]):
         # processing input
         x = states_goals_l[0]
         x = self.nerf(x).float()

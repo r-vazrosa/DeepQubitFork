@@ -3,6 +3,7 @@ import numpy as np
 from typing import List
 from qiskit import qasm3
 from qiskit.quantum_info import Operator
+from qiskit.synthesis import OneQubitEulerDecomposer
 
 
 # identity matrix on one qubit
@@ -66,6 +67,11 @@ def seq_to_matrix(seq: str) -> np.ndarray[np.complex128]:
     return op.data
 
 
+def gen_u3(theta, phi, _lambda):
+    return np.array([[np.cos(theta/2), -np.exp(1j*_lambda) * np.sin(theta/2)],
+                     [np.exp(1j*phi)*np.sin(theta/2), np.exp(1j*(phi+_lambda))*np.cos(theta/2)]])
+
+
 def gram_schmidt(A):
     """input: A set of linearly independent vectors stored
               as the columns of matrix A
@@ -92,9 +98,13 @@ def gram_schmidt(A):
 def perturb_unitary(U: np.ndarray[np.complex128], epsilon: float):
     """Adds a small perturbation to a unitary matrix
        such that it is still within epsilon of the original"""
-    N = U.shape[0]
-    random_matrix = ((np.random.rand(N,N)*2-1) + (np.random.rand(N,N)*2-1)*1j) * epsilon / 2
-    U_new = gram_schmidt(U + random_matrix)
+    # N = U.shape[0]
+    # random_matrix = ((np.random.rand(N,N)*2-1) + (np.random.rand(N,N)*2-1)*1j) * epsilon / 32
+    # U_new = gram_schmidt(U + random_matrix)
+    # return U_new
+    U_eps = gen_u3(np.random.rand(3)*2*np.pi*1e-4)
+    U_new = U_eps @ U
+    assert unitary_distance(U, U_new) <= epsilon
     return U_new
 
 
@@ -131,8 +141,13 @@ def unitary_to_nnet_input(U: np.ndarray[np.complex128]) -> np.ndarray[float]:
     """Converts a complex-valued unitary matrix into real-valued
        flat numpy arrays that can be converted to tensors easily"""
     # splitting array into magnitude and phase of each complex entry
-    W = np.array([np.abs(U), np.angle(U)/(2*np.pi)]).flatten()
-    return W
+    # W = np.array([np.abs(U), np.angle(U)/(2*np.pi)]).flatten()
+    # return W
+    qc = OneQubitEulerDecomposer(basis='U3')(U)
+    if len(qc.data) > 0:
+        return np.array(qc.data[0].params) / (2*np.pi)
+    else:
+        return np.array([0.0, 0.0, 0.0])
 
 
 def unitary_distance(U: np.ndarray[np.complex128], C: np.ndarray[np.complex128]) -> float:
