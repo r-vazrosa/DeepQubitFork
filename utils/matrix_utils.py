@@ -4,6 +4,7 @@ from typing import List
 from qiskit import qasm3
 from qiskit.quantum_info import Operator
 from qiskit.synthesis import OneQubitEulerDecomposer
+from qiskit.circuit.library import U3Gate
 
 
 # identity matrix on one qubit
@@ -68,8 +69,7 @@ def seq_to_matrix(seq: str) -> np.ndarray[np.complex128]:
 
 
 def gen_u3(theta, phi, _lambda):
-    return np.array([[np.cos(theta/2), -np.exp(1j*_lambda) * np.sin(theta/2)],
-                     [np.exp(1j*phi)*np.sin(theta/2), np.exp(1j*(phi+_lambda))*np.cos(theta/2)]])
+    return Operator(U3Gate(theta, phi, _lambda)).data.astype(np.complex128)
 
 
 def gram_schmidt(A):

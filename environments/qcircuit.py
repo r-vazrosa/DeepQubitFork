@@ -196,11 +196,10 @@ class QCircuit(Environment):
         """
         Creates goal objects from state-goal pairs
         """
-        # if self.num_qubits == 1:
-        #     return [QGoal(perturb_unitary(x.unitary, self.epsilon)) for x in states_goal]
-        # else:
-        #     return [QGoal(x.unitary) for x in states_goal]
-        return [QGoal(x.unitary) for x in states_goal]
+        if self.num_qubits == 1:
+            return [QGoal(perturb_unitary(x.unitary, self.epsilon)) for x in states_goal]
+        else:
+            return [QGoal(x.unitary) for x in states_goal]
     
     def is_solved(self, states: List[QState], goals: List[QGoal]) -> List[bool]:
         """
