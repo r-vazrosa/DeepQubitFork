@@ -102,7 +102,7 @@ def perturb_unitary(U: np.ndarray[np.complex128], epsilon: float):
     # random_matrix = ((np.random.rand(N,N)*2-1) + (np.random.rand(N,N)*2-1)*1j) * epsilon / 32
     # U_new = gram_schmidt(U + random_matrix)
     # return U_new
-    U_eps = gen_u3(np.random.rand(3)*2*np.pi*1e-4)
+    U_eps = gen_u3(*(np.random.rand(3)*2*np.pi*1e-4))
     U_new = U_eps @ U
     assert unitary_distance(U, U_new) <= epsilon
     return U_new
