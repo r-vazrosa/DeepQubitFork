@@ -141,7 +141,7 @@ def unitary_to_nnet_input(U: np.ndarray[np.complex128]) -> np.ndarray[float]:
     # return W
     qc = OneQubitEulerDecomposer(basis='U3')(U)
     if len(qc.data) > 0:
-        return np.array(qc.data[0].params) / (2*np.pi)
+        return np.array(qc.data[0].params) / np.pi
     else:
         return np.array([0.0, 0.0, 0.0])
 
