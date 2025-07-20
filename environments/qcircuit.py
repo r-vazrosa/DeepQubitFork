@@ -242,6 +242,32 @@ class QCircuit(Environment):
                 return ResnetModel(self.L, input_size, 5000, 1000, 4, 1, True)
             case _:
                 raise Exception('Environment not configured for >4 qubits')
+            
+    def _random_walk(self, states: List[QState], num_steps_l: List[int]) -> List[QState]:
+        num_steps = np.array(num_steps_l)
+        seqs = []
+        for L in num_steps:
+            last_t = 1
+            seq = ''
+            for _ in range(L):
+                if last_t >= 3:
+                    seq += 't'
+                    last_t = 0
+                elif last_t == 0:
+                    g = np.random.choice(['s','h','x','y','z'])
+                    last_t += 1
+                    seq += g
+                else:
+                    g = np.random.choice(['t','s','h','x','y','z'])
+                    seq += g
+                    if g == 't':
+                        last_t = 0
+                    else:
+                        last_t += 1
+            seqs.append(seq)
+        unitaries = [seq_to_matrix(y) @ x.unitary for (x, y) in zip(states, seqs)]
+        states_walk = [QState(x) for x in unitaries]
+        return states_walk
 
     # ------------------- NOT IMPLEMENTED -------------------
 
