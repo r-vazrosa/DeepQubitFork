@@ -18,6 +18,7 @@ def main():
     parser.add_argument('--numpy', action='store_true')
     args = parser.parse_args()
 
+    unitaries: np.ndarray[np.complex128]
     if args.method == 'random_walk':
         # environment setup/generating matrices
         env = QCircuit(args.num_qubits)
