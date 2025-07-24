@@ -243,7 +243,7 @@ class QCircuit(Environment):
             case _:
                 raise Exception('Environment not configured for >4 qubits')
             
-    def _random_walk(self, states: List[QState], num_steps_l: List[int]) -> List[QState]:
+    def __random_walk(self, states: List[QState], num_steps_l: List[int]) -> List[QState]:
         num_steps = np.array(num_steps_l)
         seqs = []
         for L in num_steps:

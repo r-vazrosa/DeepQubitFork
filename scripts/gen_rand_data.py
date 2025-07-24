@@ -23,7 +23,8 @@ def main():
         env = QCircuit(args.num_qubits)
         start_states = env.get_start_states(args.num_targets)
         num_steps = np.random.randint(args.max_steps, size=(args.num_targets,))
-        states_walk = env._random_walk(start_states, num_steps)
+#        states_walk = env._random_walk(start_states, num_steps)
+        states_walk = env._random_walk(start_states, [args.max_steps] * args.num_targets)
         unitaries = [x.unitary for x in states_walk]
     elif args.method == 'rvs':
         unitaries = [random_unitary(2**args.num_qubits) for _ in range(args.num_targets)]

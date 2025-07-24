@@ -1,7 +1,7 @@
 import scipy
 import numpy as np
 from typing import List
-from qiskit import qasm3
+from qiskit import qasm2
 from qiskit.quantum_info import Operator
 from qiskit.synthesis import OneQubitEulerDecomposer
 from qiskit.circuit.library import U3Gate
@@ -56,14 +56,14 @@ def save_matrix_to_file(matrix: np.ndarray[np.complex128], filename: str):
 
 def seq_to_matrix(seq: str) -> np.ndarray[np.complex128]:
     qasm_str = '''
-    OPENQASM 3.0;
-    include "stdgates.inc";
-    qubit q;'''
+    OPENQASM 2.0;
+    include "qelib1.inc";
+    qreg qs[1];'''
 
     for x in seq:
-        qasm_str += '\n' + x + ' q;'
+        qasm_str += '\n' + x + ' qs[0];'
     
-    qc = qasm3.loads(qasm_str)
+    qc = qasm2.loads(qasm_str)
     op = Operator.from_circuit(qc)
     return op.data
 
