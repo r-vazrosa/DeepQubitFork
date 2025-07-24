@@ -196,10 +196,11 @@ class QCircuit(Environment):
         """
         Creates goal objects from state-goal pairs
         """
-        if self.num_qubits == 1:
-            return [QGoal(perturb_unitary(x.unitary, self.epsilon)) for x in states_goal]
-        else:
-            return [QGoal(x.unitary) for x in states_goal]
+        # if self.num_qubits == 1:
+        #     return [QGoal(perturb_unitary(x.unitary, self.epsilon)) for x in states_goal]
+        # else:
+        #     return [QGoal(x.unitary) for x in states_goal]
+        return [QGoal(x.unitary) for x in states_goal]
     
     def is_solved(self, states: List[QState], goals: List[QGoal]) -> List[bool]:
         """
@@ -225,12 +226,16 @@ class QCircuit(Environment):
         @param goals: List of quantum circuit goals
         @returns: List of numpy arrays of flattened state and unitaries (in float format)
         """
-        total_unitaries = [np.matmul(y.unitary, invert_unitary(x.unitary)) for (x, y) in zip(states, goals)]
-        return [np.stack([unitary_to_nnet_input(x) for x in total_unitaries]).astype(float)]
+        # total_unitaries = [np.matmul(y.unitary, invert_unitary(x.unitary)) for (x, y) in zip(states, goals)]
+        # return [np.stack([unitary_to_nnet_input(x) for x in total_unitaries]).astype(float)]
+        total_unitaries = [y.unitary @ x.unitary for (x, y) in zip(states, goals)]
+        encoded = [encode_unitary(x) for x in total_unitaries]
+        return [np.vstack(encoded)]
 
     def get_v_nnet(self) -> HeurFnNNet:
         # input_size: int = 2**(2*self.num_qubits + 1)
-        input_size = 2**(2*self.num_qubits) - 1
+        n = self.num_qubits
+        input_size = 2**(2*n)-1
         match self.num_qubits, self.epsilon:
             case 1, 1e-2:
                 return ResnetModel(self.L, input_size, 2000, 1000, 3, 1, True)
