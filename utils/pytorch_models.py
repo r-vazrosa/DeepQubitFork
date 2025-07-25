@@ -92,7 +92,7 @@ class GellMannEmbedding(nn.Module):
         
             outs.append(theta_k)
 
-        return torch.stack(outs) / (2*torch.pi)
+        return torch.stack(outs)
 
 
 class NeRFEmbedding(nn.Module):
@@ -101,7 +101,7 @@ class NeRFEmbedding(nn.Module):
         super().__init__()
         self.L = L
         self._emb_vec = torch.tensor(
-            [torch.pi * 2 ** i for i in range(L)], requires_grad=False
+            [2 ** i for i in range(L)], requires_grad=False
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
