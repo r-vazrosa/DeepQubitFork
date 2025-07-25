@@ -228,23 +228,21 @@ class QCircuit(Environment):
         """
         # total_unitaries = [np.matmul(y.unitary, invert_unitary(x.unitary)) for (x, y) in zip(states, goals)]
         # return [np.stack([unitary_to_nnet_input(x) for x in total_unitaries]).astype(float)]
-        total_unitaries = [y.unitary @ x.unitary for (x, y) in zip(states, goals)]
-        encoded = [encode_unitary(x) for x in total_unitaries]
-        return [np.vstack(encoded)]
+        total_unitaries = [y.unitary @ invert_unitary(x.unitary) for (x, y) in zip(states, goals)]
+        return [np.array(total_unitaries)]
 
     def get_v_nnet(self) -> HeurFnNNet:
         # input_size: int = 2**(2*self.num_qubits + 1)
         n = self.num_qubits
-        input_size = 2**(2*n)-1
         match self.num_qubits, self.epsilon:
             case 1, 1e-2:
-                return ResnetModel(self.L, input_size, 2000, 1000, 3, 1, True)
+                return ResnetModel(2**n, self.L, 2000, 1000, 3, 1, True)
             case 1, 1e-3:
-                return ResnetModel(self.L, input_size, 5000, 2000, 4, 1, True)
+                return ResnetModel(2**n, self.L, 5000, 2000, 4, 1, True)
             case 1, 1e-4:
-                return ResnetModel(self.L, input_size, 8000, 1000, 4, 1, True)
+                return ResnetModel(2**n, self.L, 8000, 1000, 4, 1, True)
             case 3, _:
-                return ResnetModel(self.L, input_size, 5000, 1000, 4, 1, True)
+                return ResnetModel(2**n, self.L, 5000, 1000, 4, 1, True)
             case _:
                 raise Exception('Environment not configured for >4 qubits')
 

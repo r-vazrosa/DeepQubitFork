@@ -55,10 +55,10 @@ def save_matrix_to_file(matrix: np.ndarray[np.complex128], filename: str):
 
 
 def seq_to_matrix(seq: str) -> np.ndarray[np.complex128]:
-    qasm_str = '''
+    qasm_str = """
     OPENQASM 2.0;
     include "qelib1.inc";
-    qreg qs[1];'''
+    qreg qs[1];"""
 
     for x in seq:
         qasm_str += '\n' + x + ' qs[0];'
@@ -148,13 +148,13 @@ def unitary_to_nnet_input(U: np.ndarray[np.complex128]) -> np.ndarray[float]:
 
 def unitary_distance(U: np.ndarray[np.complex128], C: np.ndarray[np.complex128]) -> float:
     """Computes the distance between two unitaries"""
-    trc = np.trace( np.matmul(U, C.conj().T) )
-    inner = (1/(2**(U.shape[0]))) * np.abs( trc )**2
-    if inner > 1.0:
-        # sometimes small rounding errors can occur and cause this value
-        #  to be > 1, which causes a sqrt of a negative number error
-        inner = 1.0
-    return np.sqrt( 1.0 - inner )
+    # from paper 'Synthetiq: Fast and Versatile Quantum Circuit Synthesis'
+    M = np.ones(U.shape, dtype=np.complex128)
+    tr_cu = np.trace(np.matmul(invert_unitary(M * C), M * U))
+    if tr_cu == 0.: tr_cu = 1.
+    num = np.linalg.norm(M * U - (tr_cu / np.abs(tr_cu)) * M * C)
+    d_sc = num / np.sqrt(np.linalg.norm(M))
+    return d_sc
 
 
 def random_unitary(dim: int) -> np.ndarray[np.complex128]:
