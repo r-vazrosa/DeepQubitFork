@@ -163,10 +163,6 @@ class ResnetModel(HeurFnNNet):
     def forward(self, states_goals_l: List[torch.Tensor]):
         # processing input
         x = states_goals_l[0]
-        b, d = x.shape
-        n = int(np.sqrt(d))
-        x = x.view(b, n, n)
-
         x = self.gm(x).float()
         x = self.nerf(x).float()
 
