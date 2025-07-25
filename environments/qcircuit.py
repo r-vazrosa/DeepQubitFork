@@ -228,8 +228,8 @@ class QCircuit(Environment):
         """
         # total_unitaries = [np.matmul(y.unitary, invert_unitary(x.unitary)) for (x, y) in zip(states, goals)]
         # return [np.stack([unitary_to_nnet_input(x) for x in total_unitaries]).astype(float)]
-        total_unitaries = [y.unitary @ invert_unitary(x.unitary) for (x, y) in zip(states, goals)]
-        return [np.array(total_unitaries)]
+        total_unitaries = [(y.unitary @ invert_unitary(x.unitary)).flatten() for (x, y) in zip(states, goals)]
+        return [np.vstack(total_unitaries)]
 
     def get_v_nnet(self) -> HeurFnNNet:
         # input_size: int = 2**(2*self.num_qubits + 1)
