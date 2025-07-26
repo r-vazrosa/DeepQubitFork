@@ -64,8 +64,6 @@ class GellMannEmbedding(nn.Module):
         outs = []
         for U in x:
             n = U.shape[0]
-            device = U.device
-            dtype = U.dtype
             U = U.type(torch.complex64)
         
             # Step 1: Normalize to SU(n)
@@ -118,23 +116,20 @@ class NeRFEmbedding(nn.Module):
 
 
 class ResnetModel(HeurFnNNet):
-    def __init__(self, n: int, encoding_dim: int, h1_dim: int, resnet_dim: int, num_resnet_blocks: int,
+    def __init__(self, input_size: int, L: int, h1_dim: int, resnet_dim: int, num_resnet_blocks: int,
                  out_dim: int, batch_norm: bool):
         super(ResnetModel, self).__init__(nnet_type='V')
-        self.n = n
-        self.encoding_dim: int = encoding_dim
-        self.blocks = nn.ModuleList()
-        self.num_resnet_blocks: int = num_resnet_blocks
+        self.L = L
+        self.num_resnet_blocks = num_resnet_blocks
         self.batch_norm = batch_norm
-
-        # Gell-Mann embedding
-        self.gm = GellMannEmbedding(n)
+        self.blocks = nn.ModuleList()
 
         # NeRF for input encoding
-        self.nerf = NeRFEmbedding(L=encoding_dim)
-
-        # first two hidden layers
-        self.fc1 = nn.Linear((n**2-1) * encoding_dim * 2, h1_dim)
+        if L > 0:
+            self.nerf = NeRFEmbedding(L=L)
+            self.fc1 = nn.Linear(input_size * L * 2, h1_dim)
+        else:
+            self.fc1 = nn.Linear(input_size, h1_dim)
 
         if self.batch_norm:
             self.bn1 = nn.BatchNorm1d(h1_dim)
@@ -162,9 +157,9 @@ class ResnetModel(HeurFnNNet):
 
     def forward(self, states_goals_l: List[torch.Tensor]):
         # processing input
-        x = states_goals_l[0]
-        x = self.gm(x).float()
-        x = self.nerf(x).float()
+        x = states_goals_l[0].float()
+        if self.L > 0:
+            x = self.nerf(x).float()
 
         # first two hidden layers
         x = self.fc1(x)

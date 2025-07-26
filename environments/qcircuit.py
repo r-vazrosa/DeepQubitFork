@@ -136,10 +136,6 @@ class CNOTGate(ControlledGate):
 
 
 class QCircuit(Environment):
-    # gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, CNOTGate]
-#    gate_set = [HGate, SGate, TGate, XGate, YGate, ZGate, CNOTGate]
-    L = 15
-
     def __init__(self, num_qubits: int, epsilon: float = 0.01):
         super(QCircuit, self).__init__(env_name='qcircuit')
         
@@ -196,10 +192,6 @@ class QCircuit(Environment):
         """
         Creates goal objects from state-goal pairs
         """
-        # if self.num_qubits == 1:
-        #     return [QGoal(perturb_unitary(x.unitary, self.epsilon)) for x in states_goal]
-        # else:
-        #     return [QGoal(x.unitary) for x in states_goal]
         return [QGoal(x.unitary) for x in states_goal]
     
     def is_solved(self, states: List[QState], goals: List[QGoal]) -> List[bool]:
@@ -226,23 +218,19 @@ class QCircuit(Environment):
         @param goals: List of quantum circuit goals
         @returns: List of numpy arrays of flattened state and unitaries (in float format)
         """
-        # total_unitaries = [np.matmul(y.unitary, invert_unitary(x.unitary)) for (x, y) in zip(states, goals)]
-        # return [np.stack([unitary_to_nnet_input(x) for x in total_unitaries]).astype(float)]
         total_unitaries = [(y.unitary @ invert_unitary(x.unitary)) for (x, y) in zip(states, goals)]
-        return [np.array(total_unitaries)]
+        u_flat = [x.flatten() for x in total_unitaries]
+        u_final = [np.hstack([np.real(x), np.imag(x)]) for x in u_flat]
+        return [np.vstack(u_final)]
 
     def get_v_nnet(self) -> HeurFnNNet:
-        # input_size: int = 2**(2*self.num_qubits + 1)
-        n = self.num_qubits
-        match self.num_qubits, self.epsilon:
-            case 1, 1e-2:
-                return ResnetModel(2**n, self.L, 2000, 1000, 3, 1, True)
-            case 1, 1e-3:
-                return ResnetModel(2**n, self.L, 5000, 2000, 4, 1, True)
-            case 1, 1e-4:
-                return ResnetModel(2**n, self.L, 8000, 1000, 4, 1, True)
-            case 3, _:
-                return ResnetModel(2**n, self.L, 5000, 1000, 4, 1, True)
+        match self.num_qubits:
+            case 1:
+                return ResnetModel(8, 0, 4000, 1000, 4, 1, True)
+            case 2:
+                return ResnetModel(32, 0, 4000, 1000, 4, 1, True)
+            case 3:
+                return ResnetModel(128, 0, 5000, 1000, 4, 1, True)
             case _:
                 raise Exception('Environment not configured for >4 qubits')
 
