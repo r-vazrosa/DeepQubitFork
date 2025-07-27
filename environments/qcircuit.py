@@ -139,6 +139,7 @@ class QCircuit(Environment):
     def __init__(self, num_qubits: int, epsilon: float = 0.01):
         super(QCircuit, self).__init__(env_name='qcircuit')
         
+        self.euler_encode = False
         self.num_qubits: int = num_qubits
         self.epsilon: float = epsilon
         if num_qubits == 1:
@@ -192,7 +193,7 @@ class QCircuit(Environment):
         """
         Creates goal objects from state-goal pairs
         """
-        return [QGoal(x.unitary) for x in states_goal]
+        return [QGoal(y.unitary @ invert_unitary(x.unitary)) for (x, y) in zip(states_start, states_goal)]
     
     def is_solved(self, states: List[QState], goals: List[QGoal]) -> List[bool]:
         """
@@ -219,14 +220,20 @@ class QCircuit(Environment):
         @returns: List of numpy arrays of flattened state and unitaries (in float format)
         """
         total_unitaries = [(y.unitary @ invert_unitary(x.unitary)) for (x, y) in zip(states, goals)]
-        u_flat = [x.flatten() for x in total_unitaries]
-        u_final = [np.hstack([np.real(x), np.imag(x)]) for x in u_flat]
-        return [np.vstack(u_final)]
+        if self.euler_encode:
+            return [np.vstack([unitary_to_nnet_input(x) for x in total_unitaries])]
+        else:
+            u_flat = [x.flatten() for x in total_unitaries]
+            u_final = [np.hstack([np.real(x), np.imag(x)]) for x in u_flat]
+            return [np.vstack(u_final)]
 
     def get_v_nnet(self) -> HeurFnNNet:
         match self.num_qubits:
             case 1:
-                return ResnetModel(8, 0, 4000, 1000, 4, 1, True)
+                if self.euler_encode:
+                    return ResnetModel(3, 0, 4000, 1000, 4, 1, True)
+                else:
+                    return ResnetModel(8, 0, 4000, 1000, 4, 1, True)
             case 2:
                 return ResnetModel(32, 0, 4000, 1000, 4, 1, True)
             case 3:
