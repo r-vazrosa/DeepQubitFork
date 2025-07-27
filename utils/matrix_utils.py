@@ -1,5 +1,8 @@
 import scipy
+from scipy.linalg import schur
 import numpy as np
+from numpy import trace, log, exp, diag
+from numpy.linalg import det, eig, inv, svd
 from typing import List
 from qiskit import qasm2
 from qiskit.quantum_info import Operator
@@ -165,3 +168,78 @@ def random_unitary(dim: int) -> np.ndarray[np.complex128]:
 def invert_unitary(U: np.ndarray[np.complex128]) -> np.ndarray[np.complex128]:
     """Inverts a unitary matrix"""
     return U.conj().T
+
+
+def get_gell_mann_basis(n: int):
+    matrices = []
+    for k in range(n):
+        for j in range(k):
+            S = np.zeros((n,n), dtype=np.complex64)
+            S[j,k] = 1
+            S[k,j] = 1
+            matrices.append(S)
+
+            A = np.zeros((n,n), dtype=np.complex64)
+            A[j,k] = -1j
+            A[k,j] = 1j
+            matrices.append(A)
+
+    for m in range(n-1):
+        D = np.zeros((n,n), dtype=np.complex64)
+        for j in range(m+1):
+            D[j,j] = 1
+            D[m+1,m+1] = -1*(m+1)
+        D = D * np.sqrt(2 / ((m+2)*(m+1)))
+        matrices.append(D)
+
+    return np.stack(matrices)
+
+
+def project_to_unitary(U):
+    # Reorthogonalize U using SVD
+    Uu, _, Uv = svd(U)
+    return Uu @ Uv
+
+
+def logm_unitary(U):
+    U = project_to_unitary(U)
+    eigvals, eigvecs = eig(U)
+    log_eigvals = log(eigvals)
+
+    D_log = diag(log_eigvals)
+    V = eigvecs
+    V_inv = inv(V)
+    log_U = V @ D_log @ V_inv
+    return log_U
+
+
+def _logm_unitary(U):
+    U = project_to_unitary(U)
+    T, Q = schur(U, output='complex')
+    log_diag = np.log(np.diagonal(T))
+    log_T = np.diag(log_diag)
+    logU = Q @ log_T @ Q.conj().T
+    logU = 0.5 * (logU - logU.conj().T)
+    return logU
+
+
+def gell_mann_encoding(U, generators):
+    # computing determinant
+    det_U = det(U)
+
+    # extracting global phase
+    n = U.shape[-2]
+    phi = np.angle(det_U) / n
+    U_hat = exp(-1j*phi) * U
+
+    # taking matrix log
+    log_U = _logm_unitary(U_hat)
+    H = -1j * log_U
+
+    # constructing angles
+    thetas = []
+    for G in generators:
+        theta_a = trace(H @ G) / 2
+        thetas.append(theta_a)
+
+    return np.hstack(np.real(thetas))

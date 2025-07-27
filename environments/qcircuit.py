@@ -147,6 +147,8 @@ class QCircuit(Environment):
         else:
             self.gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, CNOTGate]
         self._generate_actions()
+        self.gell_mann_generators = get_gell_mann_basis(2**self.num_qubits)
+        self.gell_mann = True
 
     def _generate_actions(self):
         """
@@ -222,6 +224,8 @@ class QCircuit(Environment):
         total_unitaries = [(y.unitary @ invert_unitary(x.unitary)) for (x, y) in zip(states, goals)]
         if self.euler_encode:
             return [np.vstack([unitary_to_nnet_input(x) for x in total_unitaries])]
+        elif self.gell_mann:
+            return [np.vstack([gell_mann_encoding(x, self.gell_mann_generators) for x in total_unitaries])]
         else:
             u_flat = [x.flatten() for x in total_unitaries]
             u_final = [np.hstack([np.real(x), np.imag(x)]) for x in u_flat]
@@ -230,14 +234,11 @@ class QCircuit(Environment):
     def get_v_nnet(self) -> HeurFnNNet:
         match self.num_qubits:
             case 1:
-                if self.euler_encode:
-                    return ResnetModel(3, 0, 4000, 1000, 4, 1, True)
-                else:
-                    return ResnetModel(8, 0, 4000, 1000, 4, 1, True)
+                return ResnetModel(3 if (self.euler_encode or self.gell_mann) else 8, 0, 4000, 1000, 4, 1, True)
             case 2:
-                return ResnetModel(32, 0, 4000, 1000, 4, 1, True)
+                return ResnetModel(15 if self.gell_man else 32, 0, 4000, 1000, 4, 1, True)
             case 3:
-                return ResnetModel(128, 0, 5000, 1000, 4, 1, True)
+                return ResnetModel(63 if self.gell_mann else 128, 0, 4000, 1000, 4, 1, True)
             case _:
                 raise Exception('Environment not configured for >4 qubits')
 
