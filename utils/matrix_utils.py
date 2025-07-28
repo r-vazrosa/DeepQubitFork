@@ -1,7 +1,7 @@
 import scipy
 from scipy.linalg import schur
 import numpy as np
-from numpy import trace, log, exp, diag
+from numpy import trace, log, exp, diag, diagonal
 from numpy.linalg import det, eig, inv, svd
 from typing import List
 from qiskit import qasm2
@@ -216,30 +216,41 @@ def logm_unitary(U):
 def _logm_unitary(U):
     U = project_to_unitary(U)
     T, Q = schur(U, output='complex')
-    log_diag = np.log(np.diagonal(T))
-    log_T = np.diag(log_diag)
+    log_diag = log(diagonal(T))
+    log_T = diag(log_diag)
     logU = Q @ log_T @ Q.conj().T
     logU = 0.5 * (logU - logU.conj().T)
     return logU
 
 
 def gell_mann_encoding(U, generators):
+    if len(U.shape) < 3:
+        n = U.shape[0]
+        U = U.reshape(1, n, n)
+        
     # computing determinant
     det_U = det(U)
 
     # extracting global phase
     n = U.shape[-2]
     phi = np.angle(det_U) / n
+    phi = phi[:, np.newaxis, np.newaxis]
     U_hat = exp(-1j*phi) * U
 
     # taking matrix log
-    log_U = _logm_unitary(U_hat)
+    log_U = []
+    for u in U_hat:
+        log_u = _logm_unitary(u)
+        log_U.append(log_u)
+
+    log_U = np.array(log_U)
     H = -1j * log_U
 
     # constructing angles
     thetas = []
     for G in generators:
-        theta_a = trace(H @ G) / 2
+        theta_a = trace(H @ G, axis1=1, axis2=2)
+        theta_a = np.real(theta_a)
         thetas.append(theta_a)
 
-    return np.hstack(np.real(thetas))
+    return (np.vstack(thetas) / 2).T

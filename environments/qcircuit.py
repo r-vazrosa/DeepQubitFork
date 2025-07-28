@@ -221,11 +221,12 @@ class QCircuit(Environment):
         @param goals: List of quantum circuit goals
         @returns: List of numpy arrays of flattened state and unitaries (in float format)
         """
-        total_unitaries = [(y.unitary @ invert_unitary(x.unitary)) for (x, y) in zip(states, goals)]
+        total_unitaries = np.array([(y.unitary @ invert_unitary(x.unitary)) for (x, y) in zip(states, goals)])
         if self.euler_encode:
             return [np.vstack([unitary_to_nnet_input(x) for x in total_unitaries])]
         elif self.gell_mann:
-            return [np.vstack([gell_mann_encoding(x, self.gell_mann_generators) for x in total_unitaries])]
+            return [gell_mann_encoding(total_unitaries, self.gell_mann_generators)]
+            # return [np.vstack([gell_mann_encoding(x, self.gell_mann_generators) for x in total_unitaries])]
         else:
             u_flat = [x.flatten() for x in total_unitaries]
             u_final = [np.hstack([np.real(x), np.imag(x)]) for x in u_flat]
