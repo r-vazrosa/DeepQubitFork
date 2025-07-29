@@ -139,7 +139,9 @@ class QCircuit(Environment):
     def __init__(self, num_qubits: int, epsilon: float = 0.01):
         super(QCircuit, self).__init__(env_name='qcircuit')
         
-        self.euler_encode = False
+        self.L = 15
+        self.gell_mann = False
+        self.euler_encode = True
         self.num_qubits: int = num_qubits
         self.epsilon: float = epsilon
         if num_qubits == 1:
@@ -148,7 +150,6 @@ class QCircuit(Environment):
             self.gate_set = [HGate, SGate, SdgGate, TGate, TdgGate, CNOTGate]
         self._generate_actions()
         self.gell_mann_generators = get_gell_mann_basis(2**self.num_qubits)
-        self.gell_mann = True
 
     def _generate_actions(self):
         """

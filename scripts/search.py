@@ -13,6 +13,21 @@ from environments.qcircuit import *
 from utils.matrix_utils import *
 
 
+def path_to_qasm(path: List[QAction], num_qubits) -> str:
+    qasm_str = ''
+    qasm_str += 'OPENQASM 2.0;\n'
+    qasm_str +='include "qelib1.inc";\n'
+    qasm_str += 'qreg qubits[%d];\n' % num_qubits
+    for x in path_actions:
+        qasm_str += '%s ' % x.asm_name
+        if isinstance(x, OneQubitGate):
+            qasm_str += 'qubits[%d]' % x.qubit
+        elif isinstance(x, ControlledGate):
+            qasm_str += 'qubits[%d], qubits[%d]' % (x.control, x.target)
+        qasm_str += ';\n'
+    return qasm_str
+
+
 if __name__ == '__main__':
     # parsing command line arguments
     parser = ArgumentParser()
@@ -64,19 +79,12 @@ if __name__ == '__main__':
                 t_count += 1
 
         # converting circuit to OpenQASM 2.0
+        qasm_str = path_to_qasm(path_actions, num_qubits)
+        error = unitary_distance(qasm_to_matrix(qasm_str), goal_matrix)
         with open(args.output, 'w') as f:
-            f.write('// Gate-count: %d, T-count: %d, time: %.3fs\n' % \
-                    (gate_count, t_count, search_time))
-            f.write('OPENQASM 2.0;\n')
-            f.write('include "qelib1.inc";\n')
-            f.write('qreg qubits[%d];\n' % num_qubits)
-            for x in path_actions:
-                f.write('%s ' % x.asm_name)
-                if isinstance(x, OneQubitGate):
-                    f.write('qubits[%d]' % x.qubit)
-                elif isinstance(x, ControlledGate):
-                    f.write('qubits[%d], qubits[%d]' % (x.control, x.target))
-                f.write(';\n')
+            f.write('// Gate-count: %d, T-count: %d, time: %.3fs, error: %.3e\n' % \
+                    (gate_count, t_count, search_time, error))
+            f.write(qasm_str)
         
         print('Found circuit with gate count %d and T count %d in %.3f seconds' % \
               (gate_count, t_count, search_time))

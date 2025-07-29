@@ -57,6 +57,10 @@ def save_matrix_to_file(matrix: np.ndarray[np.complex128], filename: str):
             f.write(row_str)
 
 
+def qasm_to_matrix(qasm_str: str) -> np.ndarray[np.complex128]:
+    return Operator(qasm2.loads(qasm_str)).data
+
+
 def seq_to_matrix(seq: str) -> np.ndarray[np.complex128]:
     qasm_str = """
     OPENQASM 2.0;
