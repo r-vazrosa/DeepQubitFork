@@ -201,26 +201,42 @@ def project_to_unitary(U):
     return Uu @ Uv
 
 
-def logm_unitary(U):
-    U = project_to_unitary(U)
+def logm_unitary_eig(U):
     eigvals, eigvecs = eig(U)
-    log_eigvals = log(eigvals)
+    # log_eigvals = log(eigvals)
+    # D_log = diag(log_eigvals)
 
-    D_log = diag(log_eigvals)
+    eigvals /= np.abs(eigvals)
+    angles = np.angle(eigvals)
+    log_diag = 1j * angles
+    D_log = diag(log_diag)
+    
     V = eigvecs
     V_inv = inv(V)
     log_U = V @ D_log @ V_inv
     return log_U
 
 
-def _logm_unitary(U):
-    U = project_to_unitary(U)
+def logm_unitary_schur(U):
     T, Q = schur(U, output='complex')
     log_diag = log(diagonal(T))
+
     log_T = diag(log_diag)
     logU = Q @ log_T @ Q.conj().T
     logU = 0.5 * (logU - logU.conj().T)
     return logU
+
+
+def logm_unitary(U):
+    U = project_to_unitary(U)
+    try:
+        return logm_unitary_eig(U)
+    except np.linalg.LinAlgError:
+        return logm_unitary_schur(U)
+    except np.linalg.LinAlgError:
+        n = U.shape[0]
+        pert = 1e-10 * np.eye(n, dtype=U.dtype)
+        return logm_unitary(U + pert)
 
 
 def gell_mann_encoding(U, generators):
@@ -240,7 +256,7 @@ def gell_mann_encoding(U, generators):
     # taking matrix log
     log_U = []
     for u in U_hat:
-        log_u = _logm_unitary(u)
+        log_u = logm_unitary(u)
         log_U.append(log_u)
 
     log_U = np.array(log_U)
