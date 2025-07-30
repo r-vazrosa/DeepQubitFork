@@ -236,7 +236,7 @@ class QCircuit(Environment):
     def get_v_nnet(self) -> HeurFnNNet:
         match self.num_qubits:
             case 1:
-                return ResnetModel(3 if (self.euler_encode or self.gell_mann) else 8, 0, 4000, 1000, 4, 1, True)
+                return ResnetModel(3 if (self.euler_encode or self.gell_mann) else 8, self.L, 4000, 1000, 4, 1, True)
             case 2:
                 return ResnetModel(15 if self.gell_man else 32, 0, 4000, 1000, 4, 1, True)
             case 3:
