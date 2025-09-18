@@ -143,14 +143,7 @@ def hash_unitary(unitary: np.ndarray[np.complex128], tolerance: float = 0.001) -
 def unitary_to_nnet_input(U: np.ndarray[np.complex128]) -> np.ndarray[float]:
     """Converts a complex-valued unitary matrix into real-valued
        flat numpy arrays that can be converted to tensors easily"""
-    # splitting array into magnitude and phase of each complex entry
-    # W = np.array([np.abs(U), np.angle(U)/(2*np.pi)]).flatten()
-    # return W
-    qc = OneQubitEulerDecomposer(basis='U3')(U)
-    if len(qc.data) > 0:
-        return np.array(qc.data[0].params) / np.pi
-    else:
-        return np.array([0.0, 0.0, 0.0])
+    pass
 
 
 def unitary_distance(U: np.ndarray[np.complex128], C: np.ndarray[np.complex128]) -> float:
@@ -174,103 +167,7 @@ def invert_unitary(U: np.ndarray[np.complex128]) -> np.ndarray[np.complex128]:
     return U.conj().T
 
 
-def get_gell_mann_basis(n: int):
-    matrices = []
-    for k in range(n):
-        for j in range(k):
-            S = np.zeros((n,n), dtype=np.complex64)
-            S[j,k] = 1
-            S[k,j] = 1
-            matrices.append(S)
-
-            A = np.zeros((n,n), dtype=np.complex64)
-            A[j,k] = -1j
-            A[k,j] = 1j
-            matrices.append(A)
-
-    for m in range(n-1):
-        D = np.zeros((n,n), dtype=np.complex64)
-        for j in range(m+1):
-            D[j,j] = 1
-            D[m+1,m+1] = -1*(m+1)
-        D = D * np.sqrt(2 / ((m+2)*(m+1)))
-        matrices.append(D)
-
-    return np.stack(matrices)
-
-
 def project_to_unitary(U):
     # Reorthogonalize U using SVD
     Uu, _, Uv = svd(U)
     return Uu @ Uv
-
-
-def logm_unitary_eig(U):
-    eigvals, eigvecs = eig(U)
-    # log_eigvals = log(eigvals)
-    # D_log = diag(log_eigvals)
-
-    eigvals /= np.abs(eigvals)
-    angles = np.angle(eigvals)
-    log_diag = 1j * angles
-    D_log = diag(log_diag)
-    
-    V = eigvecs
-    V_inv = inv(V)
-    log_U = V @ D_log @ V_inv
-    return log_U
-
-
-def logm_unitary_schur(U):
-    T, Q = schur(U, output='complex')
-    log_diag = log(diagonal(T))
-
-    log_T = diag(log_diag)
-    logU = Q @ log_T @ Q.conj().T
-    logU = 0.5 * (logU - logU.conj().T)
-    return logU
-
-
-def logm_unitary(U):
-    U = project_to_unitary(U)
-    try:
-        return logm_unitary_eig(U)
-    except np.linalg.LinAlgError:
-        return logm_unitary_schur(U)
-    except np.linalg.LinAlgError:
-        n = U.shape[0]
-        pert = 1e-10 * np.eye(n, dtype=U.dtype)
-        return logm_unitary(U + pert)
-
-
-def gell_mann_encoding(U, generators):
-    if len(U.shape) < 3:
-        n = U.shape[0]
-        U = U.reshape(1, n, n)
-        
-    # computing determinant
-    det_U = det(U)
-
-    # extracting global phase
-    n = U.shape[-2]
-    phi = np.angle(det_U) / n
-    phi = phi[:, np.newaxis, np.newaxis]
-    U_hat = exp(-1j*phi) * U
-
-    # taking matrix log
-    log_U = []
-    for u in U_hat:
-        log_u = logm_unitary(u)
-        log_U.append(log_u)
-
-    log_U = np.array(log_U)
-    H = -1j * log_U
-
-    # constructing angles
-    thetas = []
-    for G in generators:
-        theta_a = trace(H @ G, axis1=1, axis2=2)
-        theta_a = np.real(theta_a)
-        thetas.append(theta_a)
-
-    return (np.vstack(thetas) / 2).T
