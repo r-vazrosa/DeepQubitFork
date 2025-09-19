@@ -4,6 +4,7 @@ from typing import Self, Tuple, List, Dict
 from deepxube.environments.environment_abstract import Environment, State, Action, Goal, HeurFnNNet
 from utils.pytorch_models import ResnetModel
 from utils.matrix_utils import *
+from utils.hurwitz import su_encode_to_features_np
 
 
 class QState(State):
@@ -220,19 +221,23 @@ class QCircuit(Environment):
         @returns: List of numpy arrays of flattened state and unitaries (in float format)
         """
         total_unitaries = np.array([(y.unitary @ invert_unitary(x.unitary)) for (x, y) in zip(states, goals)])
-        u_flat = [x.flatten() for x in total_unitaries]
-        u_final = [np.hstack([np.real(x), np.imag(x)]) for x in u_flat]
-        return [np.vstack(u_final)]
+#        u_flat = [x.flatten() for x in total_unitaries]
+#        u_final = [np.hstack([np.real(x), np.imag(x)]) for x in u_flat]
+#        return [np.vstack(u_final)]
+        features = su_encode_to_features_np(total_unitaries)
+        return [features]
+        
 
     def get_v_nnet(self) -> HeurFnNNet:
-        N = 2**(2*self.num_qubits + 1)
+#        N = 2**(2*self.num_qubits + 1)
+        N = 2**(2*self.num_qubits)-1
         match self.num_qubits:
             case 1:
-                return ResnetModel(N, self.L, 4000, 1000, 4, 1, True)
+                return ResnetModel(N, self.L, 2000, 1000, 4, 1, True)
             case 2:
-                return ResnetModel(N if self.gell_man else 32, 0, 4000, 1000, 4, 1, True)
+                return ResnetModel(N, self.L, 2000, 1000, 4, 1, True)
             case 3:
-                return ResnetModel(N, 0, 4000, 1000, 4, 1, True)
+                return ResnetModel(N, self.L, 2000, 1000, 4, 1, True)
             case _:
                 raise Exception('Environment not configured for >3 qubits')
 
