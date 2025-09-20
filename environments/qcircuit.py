@@ -138,10 +138,15 @@ class CNOTGate(ControlledGate):
 
 
 class QCircuit(Environment):
-    def __init__(self, num_qubits: int, epsilon: float = 0.01):
+    def __init__(self,
+                 num_qubits: int,
+                 epsilon: float = 0.01,
+                 perturb: bool = False,
+                 L: int = 15):
         super(QCircuit, self).__init__(env_name='qcircuit')
         
         self.L = 15
+        self.perturb = True
         self.num_qubits: int = num_qubits
         self.epsilon: float = epsilon
         if num_qubits == 1:
@@ -195,10 +200,12 @@ class QCircuit(Environment):
         """
         Creates goal objects from state-goal pairs
         """
-#        return [QGoal(y.unitary @ invert_unitary(x.unitary)) for (x, y) in zip(states_start, states_goal)]
-        U_b = np.array([y.unitary @ invert_unitary(x.unitary) for (x, y) in zip(states_start, states_goal)])
-        U_pt = perturb_unitary_random_batch_strict(U_b, (1/np.sqrt(2)) * self.epsilon)
-        return [QGoal(x) for x in U_pt]
+        if self.perturb:
+            U_b = np.array([y.unitary @ invert_unitary(x.unitary) for (x, y) in zip(states_start, states_goal)])
+            U_pt = perturb_unitary_random_batch_strict(U_b, (1/np.sqrt(2)) * self.epsilon)
+            return [QGoal(x) for x in U_pt]
+        else:
+            return [QGoal(y.unitary @ invert_unitary(x.unitary)) for (x, y) in zip(states_start, states_goal)]
     
     def is_solved(self, states: List[QState], goals: List[QGoal]) -> List[bool]:
         """

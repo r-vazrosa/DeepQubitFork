@@ -19,12 +19,16 @@ if __name__ == '__main__':
     parser.add_argument('--max_itrs', type=int, default=1e5)
     parser.add_argument('--greedy_update_step_max', type=int, default=5)
     parser.add_argument('--num_update_procs', type=int, default=5)
+    parser.add_argument('--perturb', action='store_true')
+    parser.add_argument('-L', '--nerf_dim', type=int, default=15)
     args = parser.parse_args()
     
     # environment setup
     env = QCircuit(
         num_qubits=args.num_qubits,
         epsilon=args.epsilon,
+        L=parser.nerf_dim,
+        perturb=parser.perturb,
     )
 
     # running approximate value iteration
