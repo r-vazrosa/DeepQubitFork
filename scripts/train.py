@@ -27,8 +27,8 @@ if __name__ == '__main__':
     env = QCircuit(
         num_qubits=args.num_qubits,
         epsilon=args.epsilon,
-        L=parser.nerf_dim,
-        perturb=parser.perturb,
+        L=args.nerf_dim,
+        perturb=args.perturb,
     )
 
     # running approximate value iteration

@@ -145,8 +145,8 @@ class QCircuit(Environment):
                  L: int = 15):
         super(QCircuit, self).__init__(env_name='qcircuit')
         
-        self.L = 15
-        self.perturb = True
+        self.L = L
+        self.perturb = perturb
         self.num_qubits: int = num_qubits
         self.epsilon: float = epsilon
         if num_qubits == 1:
