@@ -41,6 +41,8 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--verbose', default=False, action='store_true')
     args = parser.parse_args()
 
+    start_time = time()
+
     # loading goal data
     num_qubits, goal_matrix = load_matrix_from_file(args.input)
 
@@ -59,6 +61,8 @@ if __name__ == '__main__':
     # setup A* search
     astar = AStar(env)
     astar.add_instances(start_states, goal_states, weights, heuristic_fn)
+    print('Setup took %.3f seconds' % (time() - start_time))
+
     start_time = time()
 
     # running search
