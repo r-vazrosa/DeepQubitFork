@@ -39,6 +39,8 @@ if __name__ == '__main__':
     parser.add_argument('-e', '--epsilon', type=float, default=1e-2)
     parser.add_argument('-l', '--path_weight', type=float, default=0.2)
     parser.add_argument('-v', '--verbose', default=False, action='store_true')
+    parser.add_argument('-H', '--hurwitz', default=False, action='store_true')
+    parser.add_argument('-L', '--nerf_dim', type=int, default=0)
     args = parser.parse_args()
 
     start_time = time()
@@ -47,7 +49,12 @@ if __name__ == '__main__':
     num_qubits, goal_matrix = load_matrix_from_file(args.input)
 
     # environment setup
-    env: QCircuit = QCircuit(num_qubits=num_qubits, epsilon=args.epsilon)
+    env: QCircuit = QCircuit(
+        num_qubits=num_qubits,
+        epsilon=args.epsilon,
+        hurwitz=args.hurwitz,
+        L=args.nerf_dim,
+    )
     goal_states: List[QGoal] = [QGoal(goal_matrix)]
     start_states: List[QState] = [QState(tensor_product([I] * num_qubits))]
     weights: List[float] = [args.path_weight]
