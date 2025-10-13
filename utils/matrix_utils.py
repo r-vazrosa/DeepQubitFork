@@ -75,42 +75,6 @@ def seq_to_matrix(seq: str) -> np.ndarray[np.complex128]:
     return op.data
 
 
-def gen_u3(theta, phi, _lambda):
-    return Operator(U3Gate(theta, phi, _lambda)).data.astype(np.complex128)
-
-
-def gram_schmidt(A):
-    """input: A set of linearly independent vectors stored
-              as the columns of matrix A
-       outpt: An orthongonal basis for the column space of A.
-       (Copied from https://www.sfu.ca/~jtmulhol/py4math/linalg/np-gramschmidt/)"""
-    # get the number of vectors.
-    A = np.copy(A) # create a local instance of the array
-    n = A.shape[1]
-    for j in range(n):
-        # For the vector in column j, find the perpendicular
-        # of the projection onto the previous orthogonal vectors.
-        for k in range(j):
-            A[:, j] -= np.dot(A[:, k], A[:, j]) * A[:, k]
-        # If original vectors aren't lin indep then we can check for this:
-        # 
-
-        if np.isclose(np.linalg.norm(A[:, j]), 0, rtol=1e-15, atol=1e-14, equal_nan=False):
-            A[:, j] = np.zeros(A.shape[0])
-        else:    
-            A[:, j] = A[:, j] / np.linalg.norm(A[:, j])
-    return A
-
-
-def perturb_unitary(U: np.ndarray[np.complex128], epsilon: float):
-    """Adds a small perturbation to a unitary matrix
-       such that it is still within epsilon of the original"""
-    U_eps = gen_u3(*((np.random.rand(3)-0.5)*np.pi*5e-4))
-    U_new = U_eps @ U
-    assert unitary_distance(U, U_new) <= epsilon
-    return U_new
-
-
 def tensor_product(mats: List[np.ndarray[np.complex128]]) -> np.ndarray[np.complex128]:
     """Computes the tensor product (Kronecker product) of a list of matrices"""
     current = 1
@@ -140,12 +104,6 @@ def hash_unitary(unitary: np.ndarray[np.complex128], tolerance: float = 0.001) -
     return hash(tuple(np.round(phase_align(unitary).flatten() / tolerance)))
 
 
-def unitary_to_nnet_input(U: np.ndarray[np.complex128]) -> np.ndarray[float]:
-    """Converts a complex-valued unitary matrix into real-valued
-       flat numpy arrays that can be converted to tensors easily"""
-    pass
-
-
 def unitary_distance(U: np.ndarray[np.complex128], C: np.ndarray[np.complex128]) -> float:
     """Computes the distance between two unitaries"""
     # from paper 'Synthetiq: Fast and Versatile Quantum Circuit Synthesis'
@@ -165,9 +123,3 @@ def random_unitary(dim: int) -> np.ndarray[np.complex128]:
 def invert_unitary(U: np.ndarray[np.complex128]) -> np.ndarray[np.complex128]:
     """Inverts a unitary matrix"""
     return U.conj().T
-
-
-def project_to_unitary(U):
-    # Reorthogonalize U using SVD
-    Uu, _, Uv = svd(U)
-    return Uu @ Uv
