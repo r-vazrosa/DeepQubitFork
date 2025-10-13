@@ -142,6 +142,7 @@ class QCircuit(Environment):
                  num_qubits: int,
                  epsilon: float = 0.01,
                  perturb: bool = False,
+                 hurwitz: bool = False,
                  L: int = 15):
         super(QCircuit, self).__init__(env_name='qcircuit')
         
@@ -149,6 +150,7 @@ class QCircuit(Environment):
         self.perturb = perturb
         self.num_qubits: int = num_qubits
         self.epsilon: float = epsilon
+        self.hurwitz = hurwitz
         if num_qubits == 1:
             self.gate_set = [HGate, SGate, TGate, XGate, YGate, ZGate]
         else:
@@ -232,25 +234,21 @@ class QCircuit(Environment):
         @returns: List of numpy arrays of flattened state and unitaries (in float format)
         """
         total_unitaries = np.array([(y.unitary @ invert_unitary(x.unitary)) for (x, y) in zip(states, goals)])
-#        u_flat = [x.flatten() for x in total_unitaries]
-#        u_final = [np.hstack([np.real(x), np.imag(x)]) for x in u_flat]
-#        return [np.vstack(u_final)]
-        features = su_encode_to_features_np(total_unitaries)
-        return [features]
+        if self.hurwitz:
+            features = su_encode_to_features_np(total_unitaries)
+            return [features]
+        else:
+            u_flat = [x.flatten() for x in total_unitaries]
+            u_final = [np.hstack([np.real(x), np.imag(x)]) for x in u_flat]
+            return [np.vstack(u_final)]
         
 
     def get_v_nnet(self) -> HeurFnNNet:
-#        N = 2**(2*self.num_qubits + 1)
-        N = 2**(2*self.num_qubits)-1
-        match self.num_qubits:
-            case 1:
-                return ResnetModel(N, self.L, 2000, 1000, 4, 1, True)
-            case 2:
-                return ResnetModel(N, self.L, 2000, 1000, 4, 1, True)
-            case 3:
-                return ResnetModel(N, self.L, 2000, 1000, 4, 1, True)
-            case _:
-                raise Exception('Environment not configured for >3 qubits')
+        if self.hurwitz:
+            N = 2**(2*self.num_qubits)-1
+        else:
+            N = 2**(2*self.num_qubits + 1)
+        return ResnetModel(N, self.L, 2000, 1000, 4, 1, True)
 
     # ------------------- NOT IMPLEMENTED -------------------
 

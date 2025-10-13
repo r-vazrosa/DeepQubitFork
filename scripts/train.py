@@ -20,6 +20,7 @@ if __name__ == '__main__':
     parser.add_argument('--greedy_update_step_max', type=int, default=5)
     parser.add_argument('--num_update_procs', type=int, default=5)
     parser.add_argument('--perturb', action='store_true')
+    parser.add_argument('--hurwitz', action='store_true')
     parser.add_argument('-L', '--nerf_dim', type=int, default=15)
     args = parser.parse_args()
     
@@ -29,6 +30,7 @@ if __name__ == '__main__':
         epsilon=args.epsilon,
         L=args.nerf_dim,
         perturb=args.perturb,
+        hurwitz=args.hurwitz,
     )
 
     # running approximate value iteration
