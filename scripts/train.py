@@ -21,7 +21,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_update_procs', type=int, default=5)
     parser.add_argument('--perturb', action='store_true')
     parser.add_argument('--hurwitz', action='store_true')
-    parser.add_argument('-L', '--nerf_dim', type=int, default=15)
+    parser.add_argument('-L', '--nerf_dim', type=int, default=0)
     args = parser.parse_args()
     
     # environment setup
