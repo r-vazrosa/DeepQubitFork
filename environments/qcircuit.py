@@ -26,8 +26,9 @@ class QGoal(Goal):
     # tolerance for comparing unitaries between goals
     epsilon: float = 1e-6
 
-    def __init__(self, unitary: np.ndarray[np.complex128]):
+    def __init__(self, unitary: np.ndarray[np.complex128], mask: np.ndarrayp[np.uint8]):
         self.unitary = unitary
+        self.mask = mask
     
     def __hash__(self):
         return hash_unitary(self.unitary)
