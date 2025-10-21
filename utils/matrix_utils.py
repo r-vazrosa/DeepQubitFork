@@ -18,17 +18,23 @@ P0 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
 P1 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
 
 
-def load_matrix_from_file(filename: str) -> np.ndarray[np.complex128]:
+def load_matrix_from_file(filename: str) -> [np.ndarray[np.complex128], np.ndarray[np.uint8]]:
     if filename.endswith('.txt'):
         num_qubits: int
         matrix: np.ndarray[np.complex128]
+        matrix_mask: np.ndarray[np.uint8]
+
         with open(filename, 'r') as f:
-            lines = [x.strip() for x in list(f)]
-            num_qubits = int(lines[1])
+            content = f.read()
+            matrix_part, mask_part = content.split('mask')
+            matrix_lines = [line.strip() for line in matrix_part.strip().splitlines() if line.strip()]
+            mask_lines = [line.strip() for line in mask_part.strip().splitlines() if line.strip()]
+
+            num_qubits = int(matrix_lines[1])
             N = 2**(num_qubits)
             matrix = np.zeros((N, N), dtype=np.complex128)
             for i in range(N):
-                row = lines[2+i]
+                row = matrix_lines[2+i]
                 cols = row.split(' ')
                 for j, col in enumerate(cols):
                     left, right = col.split(',')
@@ -48,23 +54,22 @@ def load_matrix_from_file(filename: str) -> np.ndarray[np.complex128]:
 
 def save_matrix_to_file(matrix: np.ndarray[np.complex128], matrix_mask: np.ndarray[np.uint8], filename: str):
     num_qubits = int(np.log2(matrix.shape[0]))
-    with open(filename, 'w') as f:
-        f.write('matrix\n%s' % num_qubits)
-        for row in matrix:
-            row_str = '\n'
-            for x in row:
-                row_str += '(%s,%s) ' % (np.real(x), np.imag(x))
-            f.write(row_str.rstrip())
 
-    #partial mask file
-    partial_filename = filename[0 : filename.rfind('.')] + '_partial.txt'
-    with open(partial_filename, 'w') as f:
-        f.write('matrix_mask\n%s' % num_qubits)
+    with open(filename, 'w') as f:
+
+        f.write(f'matrix\n{num_qubits}')
+
         for row in matrix:
             row_str = '\n'
-            for x in row:
-                row_str += '%s ' % (x)
-            f.write(row_str.rstrip())
+            row_str = " ".join(f'({np.real(x)},{np.imag(x)})' for x in row)
+            f.write(row_str + '\n')
+
+        f.write("mask\n")
+
+        for row in matrix_mask:
+            row_str = '\n'
+            row_str = " ".join(f'{x}' for x in row)
+            f.write(row_str + '\n')
 
 
 
