@@ -10,9 +10,9 @@
 
 - Update random goal generation script to take partial flag and generate partial specs
 
-- Update matrix saving function to be able to save partial specs
+- (COMPLETE) Update matrix saving function to be able to save partial specs
 
-- Update matrix loading function to load partial specs from txt files
+- (COMPLETE) Update matrix loading function to load partial specs from txt files
 
 - Update states_goals_to_nnet_input function to pass both flattened unitaries and flattened partial spec to neural network (currently passes flattened total unitary when not using hurwitz encoding)
 

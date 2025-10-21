@@ -18,7 +18,7 @@ P0 = np.array([[1, 0], [0, 0]], dtype=np.complex128)
 P1 = np.array([[0, 0], [0, 1]], dtype=np.complex128)
 
 
-def load_matrix_from_file(filename: str) -> [np.ndarray[np.complex128], np.ndarray[np.uint8]]:
+def load_matrix_from_file(filename: str) -> np.ndarray[np.complex128]:
     if filename.endswith('.txt'):
         num_qubits: int
         matrix: np.ndarray[np.complex128]
@@ -33,6 +33,9 @@ def load_matrix_from_file(filename: str) -> [np.ndarray[np.complex128], np.ndarr
             num_qubits = int(matrix_lines[1])
             N = 2**(num_qubits)
             matrix = np.zeros((N, N), dtype=np.complex128)
+            matrix_mask = np.zeros((N, N), dtype=np.uint8)
+
+            #matrix data load
             for i in range(N):
                 row = matrix_lines[2+i]
                 cols = row.split(' ')
@@ -41,7 +44,15 @@ def load_matrix_from_file(filename: str) -> [np.ndarray[np.complex128], np.ndarr
                     real = float(left[1:])
                     imag = float(right[:-1])
                     matrix[i][j] = real + imag*1j
-        return num_qubits, matrix
+
+            #matrix mask data load
+            for i in range(N):
+                row = mask_lines[i]
+                cols = row.split(' ')
+                for j, col in enumerate(cols):
+                    matrix_mask[i][j] = col
+
+        return num_qubits, matrix, matrix_mask
     
     elif filename.endswith('.npy'):
         matrix = np.load(filename)
@@ -57,7 +68,7 @@ def save_matrix_to_file(matrix: np.ndarray[np.complex128], matrix_mask: np.ndarr
 
     with open(filename, 'w') as f:
 
-        f.write(f'matrix\n{num_qubits}')
+        f.write(f'matrix\n{num_qubits}\n')
 
         for row in matrix:
             row_str = '\n'
