@@ -22,6 +22,7 @@ if __name__ == '__main__':
     parser.add_argument('--perturb', action='store_true')
     parser.add_argument('--hurwitz', action='store_true')
     parser.add_argument('-L', '--nerf_dim', type=int, default=0)
+    parser.add_argument('--partial', action='store_true')
     args = parser.parse_args()
     
     # environment setup
@@ -31,6 +32,7 @@ if __name__ == '__main__':
         L=args.nerf_dim,
         perturb=args.perturb,
         hurwitz=args.hurwitz,
+        partial=args.partial,
     )
 
     # running approximate value iteration

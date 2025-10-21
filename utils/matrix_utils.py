@@ -46,7 +46,7 @@ def load_matrix_from_file(filename: str) -> np.ndarray[np.complex128]:
         raise Exception('Invalid file format')
 
 
-def save_matrix_to_file(matrix: np.ndarray[np.complex128], filename: str):
+def save_matrix_to_file(matrix: np.ndarray[np.complex128], matrix_mask: np.ndarray[np.uint8], filename: str):
     num_qubits = int(np.log2(matrix.shape[0]))
     with open(filename, 'w') as f:
         f.write('matrix\n%s' % num_qubits)
@@ -54,7 +54,18 @@ def save_matrix_to_file(matrix: np.ndarray[np.complex128], filename: str):
             row_str = '\n'
             for x in row:
                 row_str += '(%s,%s) ' % (np.real(x), np.imag(x))
-            f.write(row_str)
+            f.write(row_str.rstrip())
+
+    #partial mask file
+    partial_filename = filename[0 : filename.rfind('.')] + '_partial.txt'
+    with open(partial_filename, 'w') as f:
+        f.write('matrix_mask\n%s' % num_qubits)
+        for row in matrix:
+            row_str = '\n'
+            for x in row:
+                row_str += '%s ' % (x)
+            f.write(row_str.rstrip())
+
 
 
 def qasm_to_matrix(qasm_str: str) -> np.ndarray[np.complex128]:

@@ -1,0 +1,19 @@
+- Update distance function to take binary specification matrix as parameter alongside two unitaries
+
+- Update neural network to take in binary specification matrix and two unitaries instead of just one (doesn't require changes to nnet definition, just input size)
+
+- Update QGoal class to include binary matrix (generate the binary matrix randomly for each goal during the sample_goal function)
+
+- (COMPLETE) Update qcircuit environment to include "partial" flag that is passed in at environment initialization (similar to hurwitz or perturb flags)
+
+- (COMPLETE) Update training script to take partial flag from command line arguments
+
+- Update random goal generation script to take partial flag and generate partial specs
+
+- Update matrix saving function to be able to save partial specs
+
+- Update matrix loading function to load partial specs from txt files
+
+- Update states_goals_to_nnet_input function to pass both flattened unitaries and flattened partial spec to neural network (currently passes flattened total unitary when not using hurwitz encoding)
+
+- Update A* search script to deal with partial specs
