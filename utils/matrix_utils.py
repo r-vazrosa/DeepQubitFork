@@ -154,3 +154,18 @@ def invert_unitary(U: np.ndarray[np.complex128]) -> np.ndarray[np.complex128]:
 #Probabillity of zeros per element OR set amount of randomly placed zeros?
 def generate_mask(U: np.ndarray[np.complex128]) -> np.ndarray[np.uint8]:
     return np.ones(U.shape, dtype=np.uint8)
+
+#probabillity
+"""
+def generate_mask(U: np.ndarray[np.complex128]), P: np.ndarray[np.float16]-> np.ndarray[np.uint8]:
+    return np.random.choice([0,1], size=U.shape, replace=True, p=P)
+
+    #example P = [.1, .9]
+"""
+
+#limit
+"""
+def generate_mask(U: np.ndarray[np.complex128]), limit: np.uint8 -> np.ndarray[np.uint8]:
+
+    mask = np.ones(U.shape, dtype=np.uint8)
+"""
