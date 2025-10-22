@@ -208,7 +208,7 @@ class QCircuit(Environment):
             U_pt = perturb_unitary_random_batch_strict(U_b, (1/np.sqrt(2)) * self.epsilon)
             return [QGoal(x) for x in U_pt]
         else:
-            return [QGoal(y.unitary @ invert_unitary(x.unitary)) for (x, y) in zip(states_start, states_goal)]
+            return [QGoal((y.unitary @ invert_unitary(x.unitary)) * generate_mask(x.unitary)) for (x, y) in zip(states_start, states_goal)]
     
     def is_solved(self, states: List[QState], goals: List[QGoal]) -> List[bool]:
         """

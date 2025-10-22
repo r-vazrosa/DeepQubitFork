@@ -150,3 +150,7 @@ def random_unitary(dim: int) -> np.ndarray[np.complex128]:
 def invert_unitary(U: np.ndarray[np.complex128]) -> np.ndarray[np.complex128]:
     """Inverts a unitary matrix"""
     return U.conj().T
+
+#Probabillity of zeros per element OR set amount of randomly placed zeros?
+def generate_mask(U: np.ndarray[np.complex128]) -> np.ndarray[np.uint8]:
+    return np.ones(U.shape, dtype=np.uint8)
